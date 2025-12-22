@@ -10,14 +10,71 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Dealer {
+  N
+  E
+  S
+  W
+}
+
+enum Vulnerability {
+  NONE
+  NS
+  EW
+  ALL
+}
+
+enum QuizState {
+  DRAFT
+  PUBLISHED
+}
+
+enum AnswerType {
+  FORCING_NON_FORCING
+  DOUBLE_INTERPRETATION
+  FREE_ANSWER
+  MULTIPLE_CHOICE
+}
+
+enum BidType {
+  PASS
+  DOUBLE
+  REDOUBLE
+  CONTRACT
+}
+
+enum Suit {
+  CLUB
+  DIAMOND
+  HEART
+  SPADE
+  NO_TRUMP
+}
+
+enum ClassMemberRole {
+  TEACHER
+  STUDENT
+}
+
+enum AttemptStatus {
+  IN_PROGRESS
+  COMPLETED
+}
+
 model User {
-  id           String    @id @default(cuid())
-  username     String    @unique
-  passwordHash String
-  inviteCode   String    @unique
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  sessions     Session[]
+  id                String             @id @default(cuid())
+  username          String             @unique
+  passwordHash      String
+  inviteCode        String             @unique
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  sessions          Session[]
+  partnershipMembers PartnershipMember[]
+  classMembers     ClassMember[]
+  classesTaught     Class[]
+  createdQuizzes    Quiz[]
+  answers           Answer[]
+  attempts          Attempt[]
 
   @@index([username])
   @@index([inviteCode])
@@ -32,5 +89,184 @@ model Session {
 
   @@index([userId])
   @@index([id])
+}
+
+model Partnership {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  members   PartnershipMember[]
+  attempts  Attempt[]
+
+  @@index([createdAt])
+}
+
+model PartnershipMember {
+  id            String      @id @default(cuid())
+  partnershipId String
+  userId        String
+  joinedAt      DateTime    @default(now())
+  partnership   Partnership @relation(fields: [partnershipId], references: [id], onDelete: Cascade)
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([partnershipId, userId])
+  @@index([partnershipId])
+  @@index([userId])
+}
+
+model Class {
+  id           String         @id @default(cuid())
+  name         String
+  classLink    String         @unique
+  teacherId    String
+  activeQuizId String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  teacher      User           @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  activeQuiz   Quiz?          @relation(fields: [activeQuizId], references: [id], onDelete: SetNull)
+  members      ClassMember[]
+  attempts     Attempt[]
+
+  @@index([teacherId])
+  @@index([activeQuizId])
+  @@index([classLink])
+}
+
+model ClassMember {
+  id        String          @id @default(cuid())
+  classId   String
+  userId    String
+  role      ClassMemberRole
+  joinedAt  DateTime        @default(now())
+  class     Class           @relation(fields: [classId], references: [id], onDelete: Cascade)
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([classId, userId])
+  @@index([classId])
+  @@index([userId])
+  @@index([role])
+}
+
+model Quiz {
+  id          String     @id @default(cuid())
+  title       String
+  description String?
+  topic       String
+  state       QuizState  @default(DRAFT)
+  publicLink  String?    @unique
+  creatorId  String
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  creator     User       @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  questions   Question[]
+  attempts    Attempt[]
+  classes     Class[]
+
+  @@index([title])
+  @@index([topic])
+  @@index([state])
+  @@index([creatorId])
+  @@index([publicLink])
+}
+
+model Question {
+  id         String      @id @default(cuid())
+  quizId     String
+  auctionId  String      @unique
+  prompt     String
+  answerType AnswerType
+  order      Int
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  quiz       Quiz        @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  auction    Auction?
+  answers    Answer[]
+
+  @@index([quizId])
+  @@index([order])
+  @@index([quizId, order])
+}
+
+model Auction {
+  id          String    @id @default(cuid())
+  questionId  String    @unique
+  dealer      Dealer
+  vulnerability Vulnerability
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  question    Question  @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  bids        Bid[]
+
+  @@index([questionId])
+}
+
+model Bid {
+  id        String   @id @default(cuid())
+  auctionId String
+  bidType   BidType
+  level     Int?
+  suit      Suit?
+  position  String
+  sequence  Int
+  createdAt DateTime @default(now())
+  auction   Auction  @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  alert     Alert?
+
+  @@index([auctionId])
+  @@index([sequence])
+  @@index([auctionId, sequence])
+}
+
+model Alert {
+  id        String   @id @default(cuid())
+  bidId     String   @unique
+  meaning   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  bid       Bid      @relation(fields: [bidId], references: [id], onDelete: Cascade)
+
+  @@index([bidId])
+}
+
+model Attempt {
+  id            String         @id @default(cuid())
+  quizId        String
+  partnershipId String?
+  classId       String?
+  userId         String
+  status         AttemptStatus @default(IN_PROGRESS)
+  startedAt      DateTime       @default(now())
+  completedAt    DateTime?
+  quiz           Quiz           @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  partnership    Partnership?   @relation(fields: [partnershipId], references: [id], onDelete: Cascade)
+  class          Class?         @relation(fields: [classId], references: [id], onDelete: Cascade)
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  answers        Answer[]
+
+  @@index([quizId])
+  @@index([partnershipId])
+  @@index([classId])
+  @@index([userId])
+  @@index([status])
+  @@index([startedAt])
+}
+
+model Answer {
+  id         String   @id @default(cuid())
+  questionId String
+  userId     String
+  attemptId  String
+  answerData Json
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  attempt    Attempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+
+  @@unique([questionId, userId, attemptId])
+  @@index([questionId])
+  @@index([userId])
+  @@index([attemptId])
+  @@index([questionId, attemptId])
 }
 
