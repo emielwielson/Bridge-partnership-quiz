@@ -1,0 +1,230 @@
+## Relevant Files
+
+### Backend/API
+- `server/api/auth/register.ts` - User registration endpoint
+- `server/api/auth/login.ts` - User login endpoint
+- `server/api/auth/session.ts` - Session management endpoint
+- `server/api/partnerships/create.ts` - Create partnership endpoint
+- `server/api/partnerships/invite.ts` - Send partnership invitation endpoint
+- `server/api/partnerships/accept.ts` - Accept partnership invitation endpoint
+- `server/api/partnerships/list.ts` - List user's partnerships endpoint
+- `server/api/partnerships/leave.ts` - Leave partnership endpoint
+- `server/api/classes/create.ts` - Create class endpoint
+- `server/api/classes/join.ts` - Join class via link endpoint
+- `server/api/classes/list.ts` - List classes endpoint
+- `server/api/classes/start-quiz.ts` - Start quiz for class endpoint
+- `server/api/quizzes/create.ts` - Create quiz endpoint
+- `server/api/quizzes/list.ts` - List/search quizzes endpoint
+- `server/api/quizzes/get.ts` - Get quiz details endpoint
+- `server/api/quizzes/publish.ts` - Publish quiz endpoint
+- `server/api/quizzes/copy.ts` - Copy quiz endpoint
+- `server/api/quizzes/share.ts` - Generate shareable link endpoint
+- `server/api/questions/create.ts` - Create question endpoint
+- `server/api/questions/update.ts` - Update question endpoint (with editability checks)
+- `server/api/auctions/validate.ts` - Validate auction bidding rules endpoint
+- `server/api/answers/submit.ts` - Submit answer endpoint
+- `server/api/answers/update.ts` - Update answer endpoint (with visibility rules)
+- `server/api/attempts/create.ts` - Create quiz attempt endpoint
+- `server/api/attempts/list.ts` - List attempts endpoint
+- `server/api/results/quizmaster-overview.ts` - Quizmaster quiz overview endpoint
+- `server/api/results/partnership-detail.ts` - Partnership detail results endpoint
+- `server/api/results/question-detail.ts` - Question detail results endpoint
+- `server/api/results/player-partnership.ts` - Player partnership results endpoint
+- `server/api/results/class-aggregate.ts` - Class aggregate results endpoint
+
+### Database Models
+- `server/models/User.ts` - User model with invite code
+- `server/models/Partnership.ts` - Partnership model
+- `server/models/PartnershipMember.ts` - Partnership membership join table
+- `server/models/Class.ts` - Class model
+- `server/models/ClassMember.ts` - Class membership join table
+- `server/models/Quiz.ts` - Quiz model with lifecycle states
+- `server/models/Question.ts` - Question model
+- `server/models/Auction.ts` - Auction model
+- `server/models/Bid.ts` - Individual bid model
+- `server/models/Alert.ts` - Alert model for bids
+- `server/models/Answer.ts` - Answer model
+- `server/models/Attempt.ts` - Quiz attempt model
+
+### Business Logic/Utilities
+- `server/lib/auth/password.ts` - Password hashing utilities
+- `server/lib/auth/session.ts` - Session management utilities
+- `server/lib/invite-code.ts` - Invite code generation utility
+- `server/lib/auction-validator.ts` - Bridge bidding rules validation
+- `server/lib/agreement-scorer.ts` - Agreement scoring logic
+- `server/lib/answer-visibility.ts` - Answer visibility rules checker
+- `server/lib/question-editability.ts` - Question editability rules checker
+- `server/lib/partnership-cleanup.ts` - Partnership destruction cleanup logic
+
+### Frontend Components
+- `client/components/auth/RegisterForm.tsx` - User registration form
+- `client/components/auth/LoginForm.tsx` - User login form
+- `client/components/partnerships/PartnershipList.tsx` - List of user's partnerships
+- `client/components/partnerships/CreatePartnership.tsx` - Create partnership form
+- `client/components/partnerships/InvitePartner.tsx` - Invite partner form
+- `client/components/partnerships/PartnershipInvites.tsx` - List of pending invitations
+- `client/components/classes/ClassList.tsx` - List of classes (teacher/student view)
+- `client/components/classes/CreateClass.tsx` - Create class form
+- `client/components/classes/JoinClass.tsx` - Join class via link form
+- `client/components/classes/ClassDashboard.tsx` - Class management dashboard (teacher)
+- `client/components/quizzes/QuizList.tsx` - List/search/filter quizzes
+- `client/components/quizzes/CreateQuiz.tsx` - Create quiz form
+- `client/components/quizzes/QuizEditor.tsx` - Quiz editing interface
+- `client/components/quizzes/QuestionEditor.tsx` - Question creation/editing interface
+- `client/components/quizzes/AuctionBuilder.tsx` - Auction building interface
+- `client/components/quizzes/BidInput.tsx` - Individual bid input component
+- `client/components/quizzes/AlertEditor.tsx` - Alert meaning editor
+- `client/components/quizzes/AnswerTypeSelector.tsx` - Answer type selection component
+- `client/components/quizzes/ForcingNonForcingInput.tsx` - Forcing/Non-forcing answer input
+- `client/components/quizzes/DoubleInterpretationInput.tsx` - Double interpretation answer input
+- `client/components/quizzes/FreeAnswerInput.tsx` - Structured free answer input (button-based)
+- `client/components/quizzes/MultipleChoiceInput.tsx` - Multiple choice answer input
+- `client/components/quizzes/QuizPlayer.tsx` - Quiz answering interface
+- `client/components/quizzes/QuestionDisplay.tsx` - Question display with auction
+- `client/components/results/QuizmasterOverview.tsx` - Quizmaster results overview
+- `client/components/results/PartnershipDetailView.tsx` - Partnership detail results
+- `client/components/results/QuestionDetailView.tsx` - Question detail results
+- `client/components/results/PlayerResults.tsx` - Player results view
+- `client/components/results/AnswerComparison.tsx` - Side-by-side answer comparison
+- `client/components/results/ClassAggregateResults.tsx` - Class aggregate results view
+
+### Tests
+- `server/api/auth/register.test.ts` - Tests for registration endpoint
+- `server/api/auth/login.test.ts` - Tests for login endpoint
+- `server/lib/auction-validator.test.ts` - Tests for auction validation
+- `server/lib/agreement-scorer.test.ts` - Tests for agreement scoring
+- `server/lib/answer-visibility.test.ts` - Tests for answer visibility rules
+- `server/lib/question-editability.test.ts` - Tests for question editability rules
+- `server/models/User.test.ts` - Tests for User model
+- `server/models/Partnership.test.ts` - Tests for Partnership model
+- `client/components/quizzes/AuctionBuilder.test.tsx` - Tests for auction builder component
+- `client/components/quizzes/FreeAnswerInput.test.tsx` - Tests for free answer input component
+
+### Notes
+
+- Unit tests should typically be placed alongside the code files they are testing (e.g., `MyComponent.tsx` and `MyComponent.test.tsx` in the same directory).
+- Use `npx jest [optional/path/to/test/file]` to run tests. Running without a path executes all tests found by the Jest configuration.
+- The file structure assumes a typical full-stack web application with separate `server/` and `client/` directories. Adjust paths based on your chosen framework and project structure.
+
+## Tasks
+
+- [ ] 1.0 Project Setup & Authentication Infrastructure
+  - [ ] 1.1 Initialize project structure (web framework, dependencies, build configuration)
+  - [ ] 1.2 Set up database connection and configuration
+  - [ ] 1.3 Create database migration system and initial schema setup
+  - [ ] 1.4 Implement User model with username, hashed password, and unique invite code
+  - [ ] 1.5 Implement password hashing utility (bcrypt or equivalent)
+  - [ ] 1.6 Implement invite code generation utility (unique, alphanumeric)
+  - [ ] 1.7 Create user registration API endpoint (username + password, auto-generate invite code)
+  - [ ] 1.8 Create user login API endpoint (username + password validation)
+  - [ ] 1.9 Implement session management (create, validate, destroy sessions)
+  - [ ] 1.10 Create authentication middleware for protected routes
+  - [ ] 1.11 Set up basic routing structure and landing page (default to Player mode)
+  - [ ] 1.12 Create registration and login UI components
+
+- [ ] 2.0 Core Data Models & Database Schema
+  - [ ] 2.1 Complete User model with relationships (partnerships, classes, created quizzes, participated quizzes)
+  - [ ] 2.2 Create Partnership model (no owner, equal members)
+  - [ ] 2.3 Create PartnershipMember join table (many-to-many relationship)
+  - [ ] 2.4 Create Class model (with teacher/owner reference)
+  - [ ] 2.5 Create ClassMember join table (many-to-many relationship with role: teacher/student)
+  - [ ] 2.6 Create Quiz model (title, description, topic, lifecycle state: draft/published)
+  - [ ] 2.7 Create Question model (references auction, answer type, question prompt)
+  - [ ] 2.8 Create Auction model (dealer, vulnerability, references quiz/question)
+  - [ ] 2.9 Create Bid model (bid type, level, suit, position, sequence order)
+  - [ ] 2.10 Create Alert model (references bid, alert meaning text)
+  - [ ] 2.11 Create Answer model (references question, user, attempt, answer data)
+  - [ ] 2.12 Create Attempt model (references quiz, partnership/class, timestamp, completion status)
+  - [ ] 2.13 Set up all foreign key relationships and constraints
+  - [ ] 2.14 Add database indexes for performance (quiz searches, topic filters, partnership lookups, answer aggregations)
+  - [ ] 2.15 Implement database constraints for data integrity (unique invite codes, etc.)
+
+- [ ] 3.0 Partnership & Class Management
+  - [ ] 3.1 Create partnership creation API endpoint (any user can create)
+  - [ ] 3.2 Implement partnership invitation system (invite via invite code)
+  - [ ] 3.3 Create partnership invitation acceptance API endpoint
+  - [ ] 3.4 Create API endpoint to list user's partnerships
+  - [ ] 3.5 Create API endpoint to leave a partnership
+  - [ ] 3.6 Implement partnership destruction logic (when any member leaves, delete partnership and incomplete attempts, retain completed attempts)
+  - [ ] 3.7 Create class creation API endpoint (creator becomes teacher)
+  - [ ] 3.8 Implement class link generation system (unique, shareable link)
+  - [ ] 3.9 Create class join API endpoint (via class link, late joining supported)
+  - [ ] 3.10 Create API endpoints to list classes (separate views for teacher and student)
+  - [ ] 3.11 Create API endpoint to start quiz for class (teacher only)
+  - [ ] 3.12 Create API endpoint to set active quiz for class (teacher only)
+  - [ ] 3.13 Build partnership list UI component
+  - [ ] 3.14 Build create partnership UI component
+  - [ ] 3.15 Build invite partner UI component (enter invite code)
+  - [ ] 3.16 Build partnership invitations UI component (show pending, accept/reject)
+  - [ ] 3.17 Build class list UI component (teacher and student views)
+  - [ ] 3.18 Build create class UI component
+  - [ ] 3.19 Build join class UI component (via link)
+  - [ ] 3.20 Build class dashboard UI component (teacher: start quizzes, view results)
+
+- [ ] 4.0 Quiz Creation & Management (Quizmaster Features)
+  - [ ] 4.1 Create quiz creation API endpoint (title, description, topic, save as draft)
+  - [ ] 4.2 Create quiz update API endpoint (editable in draft, limited editing in published)
+  - [ ] 4.3 Create quiz publish API endpoint (change state to published, make immutable)
+  - [ ] 4.4 Create quiz list/search API endpoint (search by name, filter by topic)
+  - [ ] 4.5 Create quiz copy API endpoint (create new quiz with no attribution)
+  - [ ] 4.6 Create quiz share API endpoint (generate public shareable link)
+  - [ ] 4.7 Implement auction validation utility (enforce bridge bidding rules: dealer starts, clockwise, legal bids, outranking, three passes rule)
+  - [ ] 4.8 Create auction creation API endpoint (dealer, vulnerability, bids with validation)
+  - [ ] 4.9 Create bid creation API endpoint (with alert support)
+  - [ ] 4.10 Create alert creation API endpoint (bid reference, alert meaning text)
+  - [ ] 4.11 Implement question editability checker utility (read-only once any player has answered)
+  - [ ] 4.12 Create question creation API endpoint (auction, prompt, answer type)
+  - [ ] 4.13 Create question update API endpoint (with editability validation)
+  - [ ] 4.14 Implement answer type validation (Forcing/Non-forcing only for contract bids or pass, Double Interpretation only for doubles)
+  - [ ] 4.15 Build quiz list/search UI component (with search and topic filter)
+  - [ ] 4.16 Build create quiz UI component (title, description, topic selection)
+  - [ ] 4.17 Build quiz editor UI component (draft/published states, publish button)
+  - [ ] 4.18 Build auction builder UI component (dealer selector, vulnerability selector, bid sequence builder)
+  - [ ] 4.19 Build bid input UI component (bid type, level, suit, with validation feedback)
+  - [ ] 4.20 Build alert editor UI component (mark bid as alerted, enter alert meaning)
+  - [ ] 4.21 Build question editor UI component (auction display, prompt input, answer type selector)
+  - [ ] 4.22 Build answer type selector UI component (Forcing/Non-forcing, Double Interpretation, Free Answer, Multiple Choice)
+  - [ ] 4.23 Build multiple choice options editor UI component (add/remove custom options)
+  - [ ] 4.24 Build double interpretation options editor UI component (default options + custom)
+  - [ ] 4.25 Implement UI to show which bid question refers to and alert status
+  - [ ] 4.26 Build quiz copy UI component (copy button, confirmation)
+  - [ ] 4.27 Build quiz share UI component (generate and display shareable link)
+
+- [ ] 5.0 Quiz Participation & Results (Player Features)
+  - [ ] 5.1 Create quiz attempt creation API endpoint (quiz, partnership/class reference)
+  - [ ] 5.2 Create answer submission API endpoint (question, user, attempt, answer data)
+  - [ ] 5.3 Create answer update API endpoint (editable until all partnership members answer)
+  - [ ] 5.4 Implement answer visibility checker utility (hidden until all partnership members answer)
+  - [ ] 5.5 Create API endpoint to get quiz attempt with questions and user's answers
+  - [ ] 5.6 Create API endpoint to get visible answers for partnership (after all answered)
+  - [ ] 5.7 Implement agreement scoring utility (all members same answer = agreed)
+  - [ ] 5.8 Create quizmaster quiz overview API endpoint (% partnerships with same/different answers per question)
+  - [ ] 5.9 Create quizmaster partnership list API endpoint (all partnerships, completion status, overall scores)
+  - [ ] 5.10 Create quizmaster partnership detail API endpoint (question-by-question answers, match/mismatch)
+  - [ ] 5.11 Create quizmaster question detail API endpoint (answer distribution, % agreement per answer)
+  - [ ] 5.12 Create player partnership results API endpoint (select partner, show quizzes, attempts, scores)
+  - [ ] 5.13 Create player class results API endpoint (individual results, aggregate class results)
+  - [ ] 5.14 Create class aggregate results API endpoint (teacher view: distribution, no agreement scoring)
+  - [ ] 5.15 Build quiz player UI component (question display, answer input, navigation)
+  - [ ] 5.16 Build question display UI component (auction with last bid highlighted, alerts shown, prompt)
+  - [ ] 5.17 Build forcing/non-forcing answer input UI component
+  - [ ] 5.18 Build double interpretation answer input UI component (radio buttons for options)
+  - [ ] 5.19 Build free answer input UI component (button-based, no keyboard: intent → suit → strength)
+  - [ ] 5.20 Build multiple choice answer input UI component (radio buttons)
+  - [ ] 5.21 Implement answer confirmation flow (confirm before proceeding to next question)
+  - [ ] 5.22 Implement question skipping (allow skip, require all answered to complete)
+  - [ ] 5.23 Implement answer editing (editable until all partnership members answer)
+  - [ ] 5.24 Build quizmaster overview UI component (question list with agreement percentages)
+  - [ ] 5.25 Build partnership list UI component (for quizmaster, with scores and completion)
+  - [ ] 5.26 Build partnership detail view UI component (side-by-side answers, match/mismatch indicators)
+  - [ ] 5.27 Build question detail view UI component (answer distribution chart, agreement percentages)
+  - [ ] 5.28 Build player results UI component (context selector: partnership vs class)
+  - [ ] 5.29 Build partner selection UI component (for partnership results)
+  - [ ] 5.30 Build player partnership results UI component (quiz list, attempts, scores, per-question comparison)
+  - [ ] 5.31 Build answer comparison UI component (side-by-side raw answers, match/mismatch)
+  - [ ] 5.32 Build class aggregate results UI component (teacher view: distribution charts)
+  - [ ] 5.33 Build student individual results UI component (personal answers and performance)
+  - [ ] 5.34 Implement language/terminology (avoid "right/wrong", use "agreed/disagreed", emphasize learning)
+  - [ ] 5.35 Implement mobile-responsive design for all quiz and results components
+  - [ ] 5.36 Implement attempt tracking (multiple attempts per partnership, timestamped)
+
