@@ -347,9 +347,9 @@ export default function QuestionDisplay({
                   } else if (pos === 'E') {
                     // East: stack top to bottom, second card lower than first
                     // With column direction, cards flow down naturally
-                    // Pull second card up slightly by (cardHeight - overlap + 2) to make it appear slightly higher
+                    // Pull second card up by (cardHeight - overlap - 3) to make it appear higher
                     // while maintaining overlap
-                    cardOffsetStyle = { marginTop: idx > 0 ? `${cardHeight - overlap + 2}px` : '0' }
+                    cardOffsetStyle = { marginTop: idx > 0 ? `${cardHeight - overlap - 3}px` : '0' }
                   } else if (pos === 'S') {
                     // South: stack right to left, overlap from right
                     cardOffsetStyle = { marginRight: idx > 0 ? `-${overlap}px` : '0' }
