@@ -270,11 +270,44 @@ export default function QuestionEditor() {
     })
   }, [selectedLevel, getLastContractBid, getContractRank, suits])
 
+  // Check if auction has ended
+  const isAuctionEnded = useMemo(() => {
+    if (bids.length === 0) return false
+    
+    // Check for 4 passes at start (passed-out hand)
+    if (bids.length === 4) {
+      const allPasses = bids.every((bid) => bid.bidType === BidType.PASS)
+      if (allPasses) return true
+    }
+    
+    // Check for 3 consecutive passes after a contract bid
+    if (bids.length >= 3) {
+      // Find if there was a contract bid before the last three bids
+      let contractBidFound = false
+      for (let i = bids.length - 4; i >= 0; i--) {
+        if (bids[i].bidType === BidType.CONTRACT) {
+          contractBidFound = true
+          break
+        }
+      }
+      
+      if (contractBidFound) {
+        const lastThree = bids.slice(-3)
+        const allPasses = lastThree.every((bid) => bid.bidType === BidType.PASS)
+        if (allPasses) return true
+      }
+    }
+    
+    return false
+  }, [bids])
+
   // Check if pass is available
-  const isPassAvailable = true
+  const isPassAvailable = !isAuctionEnded
 
   // Check if double is available
   const isDoubleAvailable = useMemo(() => {
+    if (isAuctionEnded) return false
+    
     // Cannot double if there are no bids
     if (bids.length === 0) return false
     
@@ -289,14 +322,17 @@ export default function QuestionEditor() {
     // Can only double opponent's contract bid
     const currentPosition = getNextPosition(bids.length)
     return isOpponent(currentPosition, lastContractBid.position)
-  }, [bids, getLastContractBid, getNextPosition, isOpponent])
+  }, [bids, isAuctionEnded, getLastContractBid, getNextPosition, isOpponent])
 
   // Check if redouble is available
   const isRedoubleAvailable = useMemo(() => {
+    if (isAuctionEnded) return false
     if (bids.length === 0) return false
+    
     const lastBid = bids[bids.length - 1]
+    // Can only redouble after a double (not after a redouble)
     return lastBid.bidType === BidType.DOUBLE
-  }, [bids])
+  }, [bids, isAuctionEnded])
 
   const addBid = (bidType: BidType, level?: number, suit?: Suit) => {
     const newBid: Bid = {
@@ -913,9 +949,16 @@ export default function QuestionEditor() {
 
           {/* Contract Bids - Two step selection */}
           <div>
-            <h4 style={{ fontSize: '0.9rem', marginBottom: '0.5rem', color: '#666' }}>Contract Bids</h4>
+            <h4 style={{ fontSize: '0.9rem', marginBottom: '0.5rem', color: '#666' }}>
+              Contract Bids
+              {isAuctionEnded && <span style={{ color: '#d32f2f', marginLeft: '0.5rem' }}>(Auction Ended)</span>}
+            </h4>
             
-            {!selectedLevel ? (
+            {isAuctionEnded ? (
+              <div style={{ padding: '1rem', backgroundColor: '#f5f5f5', borderRadius: '4px', textAlign: 'center', color: '#666' }}>
+                The auction has ended. No more bids can be added.
+              </div>
+            ) : !selectedLevel ? (
               // Step 1: Select Level
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem' }}>
                 {getAvailableLevels.map((level) => (
