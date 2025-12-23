@@ -30,9 +30,10 @@ export default function QuestionEditor() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [validationErrors, setValidationErrors] = useState<string[]>([])
-  const [editingAlert, setEditingAlert] = useState<number | null>(null)
+  const [showAlertEditor, setShowAlertEditor] = useState<boolean>(false)
   const [alertMeaning, setAlertMeaning] = useState('')
   const [selectedLevel, setSelectedLevel] = useState<number | null>(null)
+  const [viewingAlertIndex, setViewingAlertIndex] = useState<number | null>(null)
 
   const positions = ['N', 'E', 'S', 'W']
   const dealers: Dealer[] = [Dealer.N, Dealer.E, Dealer.S, Dealer.W]
@@ -359,16 +360,19 @@ export default function QuestionEditor() {
     return lastBid.bidType === BidType.DOUBLE
   }, [bids, isAuctionEnded])
 
-  const addBid = (bidType: BidType, level?: number, suit?: Suit) => {
+  const addBid = (bidType: BidType, level?: number, suit?: Suit, alert?: { meaning: string }) => {
     const newBid: Bid = {
       bidType,
       level,
       suit,
       position: getNextPosition(bids.length),
       sequence: bids.length,
+      alert: alert ? { meaning: alert.meaning.trim() } : undefined,
     }
     setBids([...bids, newBid])
     setSelectedLevel(null) // Reset level selection after adding bid
+    setShowAlertEditor(false) // Reset alert checkbox after adding bid
+    setAlertMeaning('') // Clear alert meaning
     
     // Reset answer type if current selection is no longer valid
     const updatedBids = [...bids, newBid]
@@ -409,33 +413,35 @@ export default function QuestionEditor() {
 
   const handleSuitClick = (suit: Suit) => {
     if (selectedLevel) {
-      addBid(BidType.CONTRACT, selectedLevel, suit)
+      handleBidWithAlert(BidType.CONTRACT, selectedLevel, suit)
     }
   }
 
-  const handleBidInTableClick = (index: number) => {
-    if (bids[index].bidType === BidType.CONTRACT) {
-      setEditingAlert(index)
-      setAlertMeaning(bids[index].alert?.meaning || '')
+  const insertSuitSymbol = (suit: Suit) => {
+    const symbol = suitSymbols[suit]
+    const textarea = document.getElementById('alert-meaning-textarea') as HTMLTextAreaElement
+    if (textarea) {
+      const start = textarea.selectionStart
+      const end = textarea.selectionEnd
+      const text = alertMeaning
+      const newText = text.substring(0, start) + symbol + text.substring(end)
+      setAlertMeaning(newText)
+      // Set cursor position after inserted symbol
+      setTimeout(() => {
+        textarea.focus()
+        textarea.setSelectionRange(start + symbol.length, start + symbol.length)
+      }, 0)
+    } else {
+      setAlertMeaning(alertMeaning + symbol)
     }
   }
 
-  const saveAlert = async (index: number) => {
-    if (!alertMeaning.trim()) {
-      alert('Alert meaning cannot be empty')
-      return
+  const handleBidWithAlert = (bidType: BidType, level?: number, suit?: Suit) => {
+    if (showAlertEditor && alertMeaning.trim()) {
+      addBid(bidType, level, suit, { meaning: alertMeaning })
+    } else {
+      addBid(bidType, level, suit)
     }
-
-    const newBids = [...bids]
-    newBids[index] = {
-      ...newBids[index],
-      alert: {
-        meaning: alertMeaning.trim(),
-      },
-    }
-    setBids(newBids)
-    setEditingAlert(null)
-    setAlertMeaning('')
   }
 
   const getBidDisplay = (bid: Bid): string => {
@@ -571,10 +577,10 @@ export default function QuestionEditor() {
         return
       }
 
-      // Save alerts for contract bids
+      // Save alerts for all bids
       if (data.question?.id) {
         for (let i = 0; i < bids.length; i++) {
-          if (bids[i].bidType === BidType.CONTRACT && bids[i].alert) {
+          if (bids[i].alert) {
             const bidId = data.question.auction?.bids?.[i]?.id
             if (bidId) {
               await fetch('/api/alerts/create', {
@@ -945,16 +951,22 @@ export default function QuestionEditor() {
                         cardOffsetStyle = { marginBottom: idx > 0 ? `${cardHeight - overlap - 11}px` : '0' }
                       }
                       
+                      const isViewingAlert = viewingAlertIndex === globalIndex
+                      
                       return (
                         <div key={idx} style={{ position: 'relative', ...cardOffsetStyle }}>
                           <button
                             type="button"
-                            onClick={() => handleBidInTableClick(globalIndex)}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              if (bid.alert) {
+                                setViewingAlertIndex(isViewingAlert ? null : globalIndex)
+                              }
+                            }}
                             style={{
                               ...cardStyle,
-                              cursor: bid.bidType === BidType.CONTRACT ? 'pointer' : 'default',
+                              cursor: bid.alert ? 'pointer' : 'default',
                             }}
-                            disabled={bid.bidType !== BidType.CONTRACT}
                           >
                             {bid.bidType === BidType.CONTRACT && bid.suit && (
                               <>
@@ -1000,125 +1012,117 @@ export default function QuestionEditor() {
                               </>
                             )}
                             {bid.bidType === BidType.DOUBLE && (
-                              <div style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'flex-start',
-                                justifyContent: 'flex-start',
-                                paddingLeft: '0px',
-                                marginTop: '-4px',
-                              }}>
-                                <div style={{ fontSize: '1.1rem', fontWeight: 'bold', lineHeight: '1' }}>X</div>
-                              </div>
+                              <>
+                                <div style={{
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  alignItems: 'flex-start',
+                                  justifyContent: 'flex-start',
+                                  paddingLeft: '0px',
+                                  marginTop: '-4px',
+                                }}>
+                                  <div style={{ fontSize: '1.1rem', fontWeight: 'bold', lineHeight: '1' }}>X</div>
+                                </div>
+                                {bid.alert && (
+                                  <div style={{
+                                    position: 'absolute',
+                                    top: '2px',
+                                    right: '2px',
+                                    fontSize: '0.7rem',
+                                    color: '#f90',
+                                  }}>
+                                    ⚠
+                                  </div>
+                                )}
+                              </>
                             )}
                             {bid.bidType === BidType.REDOUBLE && (
-                              <div style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'flex-start',
-                                justifyContent: 'flex-start',
-                                paddingLeft: '0px',
-                                marginTop: '-4px',
-                              }}>
-                                <div style={{ fontSize: '0.9rem', fontWeight: 'bold', lineHeight: '1', marginBottom: '0.02rem' }}>X</div>
-                                <div style={{ fontSize: '0.9rem', fontWeight: 'bold', lineHeight: '1' }}>X</div>
-                              </div>
+                              <>
+                                <div style={{
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  alignItems: 'flex-start',
+                                  justifyContent: 'flex-start',
+                                  paddingLeft: '0px',
+                                  marginTop: '-4px',
+                                }}>
+                                  <div style={{ fontSize: '0.9rem', fontWeight: 'bold', lineHeight: '1', marginBottom: '0.02rem' }}>X</div>
+                                  <div style={{ fontSize: '0.9rem', fontWeight: 'bold', lineHeight: '1' }}>X</div>
+                                </div>
+                                {bid.alert && (
+                                  <div style={{
+                                    position: 'absolute',
+                                    top: '2px',
+                                    right: '2px',
+                                    fontSize: '0.7rem',
+                                    color: '#f90',
+                                  }}>
+                                    ⚠
+                                  </div>
+                                )}
+                              </>
                             )}
                             {bid.bidType === BidType.PASS && (
-                              <div style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'flex-start',
-                                justifyContent: 'flex-start',
-                                paddingLeft: '0px',
-                                marginTop: '-4px',
-                              }}>
-                                <div style={{ fontSize: '0.65rem', fontWeight: 'bold', lineHeight: '1', marginBottom: '0.02rem' }}>P</div>
-                                <div style={{ fontSize: '0.65rem', fontWeight: 'bold', lineHeight: '1', marginBottom: '0.02rem' }}>A</div>
-                                <div style={{ fontSize: '0.65rem', fontWeight: 'bold', lineHeight: '1', marginBottom: '0.02rem' }}>S</div>
-                                <div style={{ fontSize: '0.65rem', fontWeight: 'bold', lineHeight: '1' }}>S</div>
-                              </div>
+                              <>
+                                <div style={{
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  alignItems: 'flex-start',
+                                  justifyContent: 'flex-start',
+                                  paddingLeft: '0px',
+                                  marginTop: '-4px',
+                                }}>
+                                  <div style={{ fontSize: '0.65rem', fontWeight: 'bold', lineHeight: '1', marginBottom: '0.02rem' }}>P</div>
+                                  <div style={{ fontSize: '0.65rem', fontWeight: 'bold', lineHeight: '1', marginBottom: '0.02rem' }}>A</div>
+                                  <div style={{ fontSize: '0.65rem', fontWeight: 'bold', lineHeight: '1', marginBottom: '0.02rem' }}>S</div>
+                                  <div style={{ fontSize: '0.65rem', fontWeight: 'bold', lineHeight: '1' }}>S</div>
+                                </div>
+                                {bid.alert && (
+                                  <div style={{
+                                    position: 'absolute',
+                                    top: '2px',
+                                    right: '2px',
+                                    fontSize: '0.7rem',
+                                    color: '#f90',
+                                  }}>
+                                    ⚠
+                                  </div>
+                                )}
+                              </>
                             )}
                           </button>
-                          {editingAlert === globalIndex && (
-                            <div
-                              style={{
-                                position: 'absolute',
-                                top: pos === 'N' ? '100%' : 'auto',
-                                bottom: pos === 'S' ? '100%' : 'auto',
-                                left: pos === 'W' ? '100%' : pos === 'E' ? 'auto' : '50%',
-                                right: pos === 'E' ? '100%' : 'auto',
-                                transform: pos === 'N' || pos === 'S' ? 'translateX(-50%)' : 'none',
-                                marginTop: pos === 'N' ? '0.5rem' : '0',
-                                marginBottom: pos === 'S' ? '0.5rem' : '0',
-                                marginLeft: pos === 'W' ? '0.5rem' : '0',
-                                marginRight: pos === 'E' ? '0.5rem' : '0',
-                                padding: '1rem',
-                                backgroundColor: '#fff',
-                                border: '1px solid #ddd',
-                                borderRadius: '4px',
-                                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                                zIndex: 10,
-                                minWidth: '250px',
-                              }}
-                            >
-                              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
-                                Alert Meaning
-                              </label>
-                              <textarea
-                                value={alertMeaning}
-                                onChange={(e) => setAlertMeaning(e.target.value)}
-                                placeholder="Enter alert meaning"
-                                rows={3}
-                                style={{
-                                  width: '100%',
-                                  padding: '0.5rem',
-                                  border: '1px solid #ddd',
-                                  borderRadius: '4px',
-                                  marginBottom: '0.5rem',
-                                }}
-                              />
-                              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                <button
-                                  type="button"
-                                  onClick={() => saveAlert(globalIndex)}
-                                  style={{
-                                    padding: '0.5rem 1rem',
-                                    backgroundColor: '#0070f3',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer',
-                                  }}
-                                >
-                                  Save
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setEditingAlert(null)
-                                    setAlertMeaning('')
-                                  }}
-                                  style={{
-                                    padding: '0.5rem 1rem',
-                                    backgroundColor: '#666',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer',
-                                  }}
-                                >
-                                  Cancel
-                                </button>
-                              </div>
-                            </div>
-                          )}
                         </div>
                       )
                     })}
                   </div>
                 )
               })}
+              
+              {/* Alert tooltip - displayed above the table */}
+              {viewingAlertIndex !== null && bids[viewingAlertIndex]?.alert && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '-60px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    padding: '0.75rem 1rem',
+                    backgroundColor: '#333',
+                    color: '#fff',
+                    borderRadius: '4px',
+                    fontSize: '0.85rem',
+                    zIndex: 1000,
+                    maxWidth: '300px',
+                    whiteSpace: 'normal',
+                    textAlign: 'left',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div style={{ fontWeight: 'bold', marginBottom: '0.25rem' }}>Alert Meaning:</div>
+                  <div>{bids[viewingAlertIndex].alert!.meaning}</div>
+                </div>
+              )}
             </div>
 
             {bids.length > 0 && (
@@ -1147,12 +1151,78 @@ export default function QuestionEditor() {
         <div style={{ width: '300px' }}>
           <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>Select Bid</h3>
           
+          {/* Alert Editor Toggle */}
+          <div style={{ marginBottom: '1.5rem', padding: '1rem', border: '1px solid #ddd', borderRadius: '4px', backgroundColor: showAlertEditor ? '#f9f9f9' : '#fff' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', marginBottom: showAlertEditor ? '0.75rem' : '0' }}>
+              <input
+                type="checkbox"
+                checked={showAlertEditor}
+                onChange={(e) => {
+                  setShowAlertEditor(e.target.checked)
+                  if (!e.target.checked) {
+                    setAlertMeaning('')
+                  }
+                }}
+                style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+              />
+              <span style={{ fontWeight: '500', fontSize: '0.9rem' }}>Add Alert</span>
+            </label>
+            
+            {showAlertEditor && (
+              <>
+                <label htmlFor="alert-meaning-textarea" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: '500', marginTop: '0.75rem' }}>
+                  Alert Meaning:
+                </label>
+                <textarea
+                  id="alert-meaning-textarea"
+                  value={alertMeaning}
+                  onChange={(e) => setAlertMeaning(e.target.value)}
+                  placeholder="Enter alert meaning"
+                  rows={3}
+                  style={{
+                    width: '100%',
+                    padding: '0.5rem',
+                    border: '1px solid #ddd',
+                    borderRadius: '4px',
+                    marginBottom: '0.5rem',
+                    fontFamily: 'inherit',
+                    fontSize: '0.9rem',
+                  }}
+                />
+                <div style={{ marginBottom: '0.5rem' }}>
+                  <div style={{ fontSize: '0.85rem', marginBottom: '0.25rem', color: '#666' }}>Insert Suit:</div>
+                  <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+                    {suits.filter(suit => suit !== Suit.NO_TRUMP).map((suit) => (
+                      <button
+                        key={suit}
+                        type="button"
+                        onClick={() => insertSuitSymbol(suit)}
+                        style={{
+                          padding: '0.4rem 0.6rem',
+                          border: '1px solid #ddd',
+                          borderRadius: '4px',
+                          backgroundColor: '#fff',
+                          cursor: 'pointer',
+                          fontSize: '1rem',
+                          minWidth: '40px',
+                        }}
+                        title={suit === Suit.CLUB ? 'Club' : suit === Suit.DIAMOND ? 'Diamond' : suit === Suit.HEART ? 'Heart' : 'Spade'}
+                      >
+                        {suitSymbols[suit]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+          
           {/* Pass, Double, Redouble - Fixed positions */}
           <div style={{ marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {isPassAvailable && (
               <button
                 type="button"
-                onClick={() => addBid(BidType.PASS)}
+                onClick={() => handleBidWithAlert(BidType.PASS)}
                 style={{
                   width: '100%',
                   padding: '0.75rem',
@@ -1168,7 +1238,7 @@ export default function QuestionEditor() {
             {isDoubleAvailable && (
               <button
                 type="button"
-                onClick={() => addBid(BidType.DOUBLE)}
+                onClick={() => handleBidWithAlert(BidType.DOUBLE)}
                 style={{
                   width: '100%',
                   padding: '0.75rem',
@@ -1184,7 +1254,7 @@ export default function QuestionEditor() {
             {isRedoubleAvailable && (
               <button
                 type="button"
-                onClick={() => addBid(BidType.REDOUBLE)}
+                onClick={() => handleBidWithAlert(BidType.REDOUBLE)}
                 style={{
                   width: '100%',
                   padding: '0.75rem',
