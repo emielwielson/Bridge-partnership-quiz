@@ -66,6 +66,13 @@ export default function ClassDashboard() {
     }
   }
 
+  const copyClassCode = () => {
+    if (classData?.classLink) {
+      navigator.clipboard.writeText(classData.classLink)
+      alert('Class code copied to clipboard!')
+    }
+  }
+
   if (loading) {
     return <div>Loading class...</div>
   }
@@ -77,6 +84,49 @@ export default function ClassDashboard() {
   return (
     <div>
       <h1 style={{ fontSize: '2rem', marginBottom: '1rem' }}>{classData.name}</h1>
+      
+      {userRole === 'TEACHER' && (
+        <div style={{ marginBottom: '2rem' }}>
+          <div style={{ fontSize: '0.9rem', color: '#666', marginBottom: '0.5rem' }}>
+            Class Code (share this with students):
+          </div>
+          <div style={{
+            padding: '1rem',
+            backgroundColor: '#f0f7ff',
+            border: '2px solid #0070f3',
+            borderRadius: '8px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: '1rem',
+          }}>
+            <div style={{
+              fontSize: '1.5rem',
+              fontWeight: 'bold',
+              fontFamily: 'monospace',
+              letterSpacing: '0.1em',
+              color: '#0070f3',
+            }}>
+              {classData.classLink}
+            </div>
+            <button
+              onClick={copyClassCode}
+              style={{
+                padding: '0.5rem 1rem',
+                backgroundColor: '#0070f3',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '0.9rem',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Copy Code
+            </button>
+          </div>
+        </div>
+      )}
       
       <div style={{ marginBottom: '2rem' }}>
         <h2 style={{ fontSize: '1.5rem', marginBottom: '0.75rem' }}>Class Members</h2>

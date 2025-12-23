@@ -42,10 +42,10 @@ export default function CreateClass() {
     }
   }
 
-  const copyLink = () => {
+  const copyCode = () => {
     if (createdClass) {
-      navigator.clipboard.writeText(`${window.location.origin}/classes/join?link=${createdClass.classLink}`)
-      alert('Class link copied to clipboard!')
+      navigator.clipboard.writeText(createdClass.classLink)
+      alert('Class code copied to clipboard!')
     }
   }
 
@@ -60,36 +60,48 @@ export default function CreateClass() {
           marginBottom: '1rem',
         }}>
           <p><strong>Class:</strong> {createdClass.name}</p>
-          <p style={{ marginTop: '0.5rem' }}>
-            <strong>Class Link:</strong> {createdClass.classLink}
-          </p>
         </div>
         <div style={{ marginBottom: '1rem' }}>
-          <p>Share this link with your students:</p>
+          <p style={{ marginBottom: '0.5rem', fontSize: '0.9rem', color: '#666' }}>
+            Share this class code with your students:
+          </p>
           <div style={{
-            padding: '0.75rem',
-            backgroundColor: '#f5f5f5',
-            borderRadius: '4px',
-            fontFamily: 'monospace',
-            wordBreak: 'break-all',
+            padding: '1rem',
+            backgroundColor: '#f0f7ff',
+            border: '2px solid #0070f3',
+            borderRadius: '8px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: '1rem',
           }}>
-            {window.location.origin}/classes/join?link={createdClass.classLink}
+            <div style={{
+              fontSize: '1.5rem',
+              fontWeight: 'bold',
+              fontFamily: 'monospace',
+              letterSpacing: '0.1em',
+              color: '#0070f3',
+            }}>
+              {createdClass.classLink}
+            </div>
+            <button
+              onClick={copyCode}
+              style={{
+                padding: '0.5rem 1rem',
+                backgroundColor: '#0070f3',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '0.9rem',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Copy Code
+            </button>
           </div>
         </div>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button
-            onClick={copyLink}
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#0070f3',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-            }}
-          >
-            Copy Link
-          </button>
           <button
             onClick={() => router.push('/classes')}
             style={{
