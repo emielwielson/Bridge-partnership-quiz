@@ -340,12 +340,23 @@ export default function QuestionDisplay({
                   // Cards overlap so only the edge with the symbol is visible
                   let cardOffsetStyle: React.CSSProperties = {}
                   const cardHeight = 50 // Height of the card (for East/West)
-                  const cardWidth = 80 // Width of the card (for North/South)
+                  
+                  // For North/South, use the previous card's width to calculate offset
+                  // This ensures consistent stacking regardless of card type (contract/pass = 80px, X/XX = 50px)
+                  let previousCardWidth = 80 // Default width for contract/pass cards
+                  if (idx > 0) {
+                    const previousBid = positionBids[idx - 1]
+                    if (previousBid.bidType === BidType.DOUBLE || previousBid.bidType === BidType.REDOUBLE) {
+                      previousCardWidth = 50 // X and XX cards are 50px wide
+                    } else {
+                      previousCardWidth = 80 // Contract and Pass cards are 80px wide
+                    }
+                  }
+                  
                   if (pos === 'N') {
                     // North: stack left to right, second card further right than first
-                    // Use more negative margin to create more overlap (move second card more to the left)
-                    // Increased slightly from -35 to -38 for a tiny bit more overlap
-                    cardOffsetStyle = { marginLeft: idx > 0 ? `${cardHeight - overlap - 38}px` : '0' }
+                    // Use previous card's width to calculate consistent overlap
+                    cardOffsetStyle = { marginLeft: idx > 0 ? `${previousCardWidth - overlap - 38}px` : '0' }
                   } else if (pos === 'E') {
                     // East: stack top to bottom, second card lower than first
                     // With column direction, cards flow down naturally
@@ -354,8 +365,8 @@ export default function QuestionDisplay({
                     cardOffsetStyle = { marginTop: idx > 0 ? `${cardHeight - overlap - 11}px` : '0' }
                   } else if (pos === 'S') {
                     // South: stack right to left, second card further left than first
-                    // Use same settings as North for consistent overlap
-                    cardOffsetStyle = { marginRight: idx > 0 ? `${cardHeight - overlap - 38}px` : '0' }
+                    // Use previous card's width to calculate consistent overlap
+                    cardOffsetStyle = { marginRight: idx > 0 ? `${previousCardWidth - overlap - 38}px` : '0' }
                   } else if (pos === 'W') {
                     // West: stack bottom to top, second card higher than first
                     // With column-reverse direction, cards flow up naturally
