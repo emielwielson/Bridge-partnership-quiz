@@ -444,7 +444,7 @@ export default function QuestionDisplay({
                             alignItems: 'flex-start',
                             justifyContent: 'flex-start',
                             paddingLeft: '0px',
-                            paddingTop: '4px',
+                            marginTop: '-8px',
                           }}>
                             <div style={{ fontSize: '0.65rem', fontWeight: 'bold', lineHeight: '1', marginBottom: '0.02rem' }}>P</div>
                             <div style={{ fontSize: '0.65rem', fontWeight: 'bold', lineHeight: '1', marginBottom: '0.02rem' }}>A</div>
