@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
+export const dynamic = 'force-dynamic'
 import { requireAuth } from '@/lib/auth/middleware'
+export const dynamic = 'force-dynamic'
 import { db } from '@/lib/db'
+export const dynamic = 'force-dynamic'
 import { validateAuction } from '@/lib/auction-validator'
+export const dynamic = 'force-dynamic'
 import { Dealer, BidType, Suit, Vulnerability } from '@prisma/client'
 
+export const dynamic = 'force-dynamic'
 export async function POST(request: NextRequest) {
   try {
     const user = await requireAuth(request)

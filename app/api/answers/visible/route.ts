@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
+export const dynamic = 'force-dynamic'
 import { requireAuth } from '@/lib/auth/middleware'
+export const dynamic = 'force-dynamic'
 import { db } from '@/lib/db'
+export const dynamic = 'force-dynamic'
 import { checkAnswerVisibility } from '@/lib/answer-visibility'
+
+export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {

@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
+export const dynamic = 'force-dynamic'
 import { optionalAuth } from '@/lib/auth/middleware'
+export const dynamic = 'force-dynamic'
 import { db } from '@/lib/db'
+export const dynamic = 'force-dynamic'
 import { checkQuestionEditability } from '@/lib/question-editability'
+export const dynamic = 'force-dynamic'
 import { QuizState } from '@prisma/client'
+
+export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {

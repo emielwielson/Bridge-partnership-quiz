@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
+export const dynamic = 'force-dynamic'
 import { db } from '@/lib/db'
+export const dynamic = 'force-dynamic'
 import { verifyPassword } from '@/lib/auth/password'
+export const dynamic = 'force-dynamic'
 import { createSession } from '@/lib/auth/session'
 
+export const dynamic = 'force-dynamic'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
