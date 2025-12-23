@@ -924,8 +924,8 @@ export default function QuestionEditor() {
                       const cardWidth = 80 // Width of the card (for North/South)
                       if (pos === 'N') {
                         // North: stack left to right, second card further right than first
-                        // Use cardWidth for horizontal stacking, same calculation as East/West
-                        cardOffsetStyle = { marginLeft: idx > 0 ? `${cardWidth - overlap - 11}px` : '0' }
+                        // Use same offset as East/West for consistent spacing
+                        cardOffsetStyle = { marginLeft: idx > 0 ? `${cardHeight - overlap - 11}px` : '0' }
                       } else if (pos === 'E') {
                         // East: stack top to bottom, second card lower than first
                         // With column direction, cards flow down naturally
@@ -934,8 +934,8 @@ export default function QuestionEditor() {
                         cardOffsetStyle = { marginTop: idx > 0 ? `${cardHeight - overlap - 11}px` : '0' }
                       } else if (pos === 'S') {
                         // South: stack right to left, second card further left than first
-                        // Use cardWidth for horizontal stacking, same calculation as East/West
-                        cardOffsetStyle = { marginRight: idx > 0 ? `${cardWidth - overlap - 11}px` : '0' }
+                        // Use same offset as East/West for consistent spacing
+                        cardOffsetStyle = { marginRight: idx > 0 ? `${cardHeight - overlap - 11}px` : '0' }
                       } else if (pos === 'W') {
                         // West: stack bottom to top, second card higher than first
                         // With column-reverse direction, cards flow up naturally
