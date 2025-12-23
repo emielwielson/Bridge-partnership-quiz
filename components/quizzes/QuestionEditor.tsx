@@ -963,6 +963,8 @@ export default function QuestionEditor() {
                                   fontWeight: 'bold',
                                   lineHeight: '1',
                                   marginBottom: '0.2rem',
+                                  textAlign: 'center',
+                                  width: '100%',
                                 }}>
                                   {bid.level}
                                 </div>
@@ -970,6 +972,8 @@ export default function QuestionEditor() {
                                   fontSize: '1.2rem', 
                                   fontWeight: 'bold',
                                   lineHeight: '1',
+                                  textAlign: 'center',
+                                  width: '100%',
                                 }}>
                                   {suitSymbols[bid.suit]}
                                 </div>
