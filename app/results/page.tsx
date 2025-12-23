@@ -234,7 +234,9 @@ export default function ResultsPage() {
             SPADE: '♠',
             NO_TRUMP: 'NT',
           }
-          parts.push(suitSymbols[answer.suit] || answer.suit)
+          // Handle multiple suits (format: "CLUB+DIAMOND")
+          const suits = answer.suit.split('+').map((s: string) => suitSymbols[s] || s)
+          parts.push(suits.join(' + '))
         }
         if (answer.strength) parts.push(answer.strength)
         return parts.join(' ') || 'Unknown'
