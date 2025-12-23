@@ -12,6 +12,7 @@ export default function StartQuizPage() {
   const [classes, setClasses] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [mode, setMode] = useState<'partnership' | 'class' | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     fetchData()
@@ -20,6 +21,25 @@ export default function StartQuizPage() {
   const fetchData = async () => {
     try {
       setLoading(true)
+      setError(null)
+      
+      // Fetch quiz state first
+      const quizRes = await fetch(`/api/quizzes/get?id=${quizId}`)
+      if (quizRes.ok) {
+        const quizData = await quizRes.json()
+        
+        // If quiz is draft, don't allow taking it
+        if (quizData.quiz.state === 'DRAFT') {
+          setError('This quiz is in draft mode and cannot be taken. Only published quizzes can be taken.')
+          setLoading(false)
+          return
+        }
+      } else {
+        setError('Failed to load quiz')
+        setLoading(false)
+        return
+      }
+
       const [partnershipsRes, classesRes] = await Promise.all([
         fetch('/api/partnerships/list'),
         fetch('/api/classes/list'),
@@ -36,6 +56,7 @@ export default function StartQuizPage() {
       }
     } catch (err) {
       console.error(err)
+      setError('An error occurred while loading the quiz')
     } finally {
       setLoading(false)
     }
