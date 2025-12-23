@@ -664,7 +664,7 @@ export default function QuestionEditor() {
     } else if (bid.bidType === BidType.DOUBLE) {
       return {
         ...baseStyle,
-        width: '50px',
+        width: '80px',
         height: '50px',
         backgroundColor: '#ef4444', // red
         color: '#fff',
@@ -674,7 +674,7 @@ export default function QuestionEditor() {
     } else if (bid.bidType === BidType.REDOUBLE) {
       return {
         ...baseStyle,
-        width: '50px',
+        width: '80px',
         height: '50px',
         backgroundColor: '#1e40af', // dark blue
         color: '#fff',
