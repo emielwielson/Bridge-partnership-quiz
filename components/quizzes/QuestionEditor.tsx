@@ -557,11 +557,22 @@ export default function QuestionEditor() {
                 <select
                   value={dealer}
                   onChange={(e) => {
-                    setDealer(e.target.value as Dealer)
-                    const newBids = bids.map((bid, i) => ({
-                      ...bid,
-                      position: getNextPosition(i),
-                    }))
+                    const newDealer = e.target.value as Dealer
+                    const oldDealerIndex = positions.indexOf(dealer)
+                    const newDealerIndex = positions.indexOf(newDealer)
+                    const rotation = (newDealerIndex - oldDealerIndex + 4) % 4
+                    
+                    // Rotate all bid positions
+                    const newBids = bids.map((bid) => {
+                      const currentPositionIndex = positions.indexOf(bid.position)
+                      const newPositionIndex = (currentPositionIndex + rotation) % 4
+                      return {
+                        ...bid,
+                        position: positions[newPositionIndex],
+                      }
+                    })
+                    
+                    setDealer(newDealer)
                     setBids(newBids)
                   }}
                   style={{
