@@ -233,7 +233,7 @@ export async function PUT(request: NextRequest) {
       })
     } else {
       // Reload with includes if no question update
-      updatedQuestion = await db.question.findUnique({
+      const reloadedQuestion = await db.question.findUnique({
         where: { id: questionId },
         include: {
           quiz: {
@@ -255,7 +255,16 @@ export async function PUT(request: NextRequest) {
             },
           },
         },
-      })!
+      })
+      
+      if (!reloadedQuestion) {
+        return NextResponse.json(
+          { error: 'Question not found after reload' },
+          { status: 404 }
+        )
+      }
+      
+      updatedQuestion = reloadedQuestion
     }
 
     return NextResponse.json(
