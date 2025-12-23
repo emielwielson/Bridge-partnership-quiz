@@ -4,11 +4,10 @@ import { db } from '@/lib/db'
 import { checkQuestionEditability } from '@/lib/question-editability'
 import { QuizState } from '@prisma/client'
 
+export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {
-export const dynamic = 'force-dynamic'
-
     const user = await optionalAuth(request)
     const { searchParams } = new URL(request.url)
     const questionId = searchParams.get('id')

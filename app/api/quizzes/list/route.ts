@@ -3,10 +3,9 @@ import { optionalAuth } from '@/lib/auth/middleware'
 import { db } from '@/lib/db'
 import { QuizState } from '@prisma/client'
 
-
-export async function GET(request: NextRequest) {
 export const dynamic = 'force-dynamic'
 
+export async function GET(request: NextRequest) {
   try {
     const user = await optionalAuth(request)
     const { searchParams } = new URL(request.url)

@@ -3,10 +3,9 @@ import { requireAuth } from '@/lib/auth/middleware'
 import { db } from '@/lib/db'
 import { calculateAgreement } from '@/lib/agreement-scorer'
 
-
-export async function GET(request: NextRequest) {
 export const dynamic = 'force-dynamic'
 
+export async function GET(request: NextRequest) {
   try {
     const user = await requireAuth(request)
     const { searchParams } = new URL(request.url)
