@@ -924,24 +924,14 @@ export default function QuestionEditor() {
                         // North: stack left to right, overlap from left
                         cardOffsetStyle = { marginLeft: idx > 0 ? `-${overlap}px` : '0' }
                       } else if (pos === 'E') {
-                        // East: stack top to bottom, second card lower than first
-                        // Cards naturally flow down with column, use negative margin-top to overlap
-                        // But we want second card visually lower, so we need to account for card height
-                        const cardHeight = 50 // Height of the card
-                        cardOffsetStyle = { 
-                          marginTop: idx > 0 ? `${cardHeight - overlap}px` : '0' 
-                        }
+                        // East: stack top to bottom, overlap from top
+                        cardOffsetStyle = { marginTop: idx > 0 ? `-${overlap}px` : '0' }
                       } else if (pos === 'S') {
                         // South: stack right to left, overlap from right
                         cardOffsetStyle = { marginRight: idx > 0 ? `-${overlap}px` : '0' }
                       } else if (pos === 'W') {
-                        // West: stack bottom to top, second card higher than first
-                        // Cards naturally flow up with column-reverse, use negative margin-bottom to overlap
-                        // But we want second card visually higher, so we need to account for card height
-                        const cardHeight = 50 // Height of the card
-                        cardOffsetStyle = { 
-                          marginBottom: idx > 0 ? `${cardHeight - overlap}px` : '0' 
-                        }
+                        // West: stack bottom to top, overlap from bottom
+                        cardOffsetStyle = { marginBottom: idx > 0 ? `-${overlap}px` : '0' }
                       }
                       
                       return (
@@ -962,13 +952,17 @@ export default function QuestionEditor() {
                                   fontWeight: 'bold',
                                   lineHeight: '1',
                                   marginBottom: '0.2rem',
+                                  textAlign: 'left',
+                                  width: '100%',
                                 }}>
                                   {bid.level}
                                 </div>
                                 <div style={{ 
-                                  fontSize: '1.2rem', 
+                                  fontSize: bid.suit === Suit.NO_TRUMP ? '1rem' : '1.2rem', 
                                   fontWeight: 'bold',
                                   lineHeight: '1',
+                                  textAlign: 'left',
+                                  width: '100%',
                                 }}>
                                   {suitSymbols[bid.suit]}
                                 </div>
@@ -1016,31 +1010,31 @@ export default function QuestionEditor() {
                             {bid.bidType === BidType.PASS && (
                               <>
                                 <div style={{ 
-                                  fontSize: '0.85rem', 
+                                  fontSize: '0.65rem', 
                                   fontWeight: 'bold',
                                   lineHeight: '1',
-                                  marginBottom: '0.1rem',
+                                  marginBottom: '0.02rem',
                                 }}>
                                   P
                                 </div>
                                 <div style={{ 
-                                  fontSize: '0.85rem', 
+                                  fontSize: '0.65rem', 
                                   fontWeight: 'bold',
                                   lineHeight: '1',
-                                  marginBottom: '0.1rem',
+                                  marginBottom: '0.02rem',
                                 }}>
                                   A
                                 </div>
                                 <div style={{ 
-                                  fontSize: '0.85rem', 
+                                  fontSize: '0.65rem', 
                                   fontWeight: 'bold',
                                   lineHeight: '1',
-                                  marginBottom: '0.1rem',
+                                  marginBottom: '0.02rem',
                                 }}>
                                   S
                                 </div>
                                 <div style={{ 
-                                  fontSize: '0.85rem', 
+                                  fontSize: '0.65rem', 
                                   fontWeight: 'bold',
                                   lineHeight: '1',
                                 }}>
