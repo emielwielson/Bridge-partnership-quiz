@@ -1005,7 +1005,18 @@ export default function QuestionEditor() {
                               <div style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>XX</div>
                             )}
                             {bid.bidType === BidType.PASS && (
-                              <div style={{ fontSize: '0.85rem', fontWeight: 'bold', lineHeight: '1.2' }}>PASS</div>
+                              <div style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'flex-start',
+                                justifyContent: 'center',
+                                paddingLeft: '0px',
+                              }}>
+                                <div style={{ fontSize: '0.65rem', fontWeight: 'bold', lineHeight: '1', marginBottom: '0.02rem' }}>P</div>
+                                <div style={{ fontSize: '0.65rem', fontWeight: 'bold', lineHeight: '1', marginBottom: '0.02rem' }}>A</div>
+                                <div style={{ fontSize: '0.65rem', fontWeight: 'bold', lineHeight: '1', marginBottom: '0.02rem' }}>S</div>
+                                <div style={{ fontSize: '0.65rem', fontWeight: 'bold', lineHeight: '1' }}>S</div>
+                              </div>
                             )}
                           </button>
                           {editingAlert === globalIndex && (
