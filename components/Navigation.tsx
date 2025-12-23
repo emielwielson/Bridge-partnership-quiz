@@ -85,6 +85,16 @@ export default function Navigation() {
             Classes
           </Link>
           <Link
+            href="/quizzes"
+            style={{
+              color: pathname?.startsWith('/quizzes') ? '#0070f3' : '#666',
+              textDecoration: 'none',
+              fontWeight: pathname?.startsWith('/quizzes') ? '500' : 'normal',
+            }}
+          >
+            Quizzes
+          </Link>
+          <Link
             href="/player"
             style={{
               color: pathname?.startsWith('/player') ? '#0070f3' : '#666',

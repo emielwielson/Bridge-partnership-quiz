@@ -1,4 +1,4 @@
-## Relevant Files
+é## Relevant Files
 
 ### Backend/API
 - `server/api/auth/register.ts` - User registration endpoint

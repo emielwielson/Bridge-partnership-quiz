@@ -198,17 +198,17 @@ model Quiz {
 }
 
 model Question {
-  id         String      @id @default(cuid())
-  quizId     String
-  auctionId  String      @unique
-  prompt     String
-  answerType AnswerType
-  order      Int
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-  quiz       Quiz        @relation(fields: [quizId], references: [id], onDelete: Cascade)
-  auction    Auction?
-  answers    Answer[]
+  id           String      @id @default(cuid())
+  quizId       String
+  prompt       String
+  answerType   AnswerType
+  answerOptions Json?      // Array of strings for MULTIPLE_CHOICE and DOUBLE_INTERPRETATION
+  order        Int
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  quiz         Quiz        @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  auction      Auction?
+  answers      Answer[]
 
   @@index([quizId])
   @@index([order])
