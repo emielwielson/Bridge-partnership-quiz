@@ -390,24 +390,32 @@ export default function QuestionDisplay({
                       >
                         {bid.bidType === BidType.CONTRACT && bid.suit && (
                           <>
-                            <div style={{ 
-                              fontSize: '1rem', 
-                              fontWeight: 'bold',
-                              lineHeight: '1',
-                              marginBottom: '0.2rem',
-                              textAlign: 'center',
-                              width: '100%',
+                            <div style={{
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'flex-start',
+                              justifyContent: 'center',
+                              paddingLeft: '8px',
                             }}>
-                              {bid.level}
-                            </div>
-                            <div style={{ 
-                              fontSize: '1.2rem', 
-                              fontWeight: 'bold',
-                              lineHeight: '1',
-                              textAlign: 'center',
-                              width: '100%',
-                            }}>
-                              {suitSymbols[bid.suit]}
+                              <div style={{ 
+                                fontSize: '1rem', 
+                                fontWeight: 'bold',
+                                lineHeight: '1',
+                                marginBottom: '0.2rem',
+                                textAlign: 'center',
+                                width: '100%',
+                              }}>
+                                {bid.level}
+                              </div>
+                              <div style={{ 
+                                fontSize: '1.2rem', 
+                                fontWeight: 'bold',
+                                lineHeight: '1',
+                                textAlign: 'center',
+                                width: '100%',
+                              }}>
+                                {suitSymbols[bid.suit]}
+                              </div>
                             </div>
                             {bid.alert && (
                               <div style={{
