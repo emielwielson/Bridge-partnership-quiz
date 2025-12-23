@@ -69,7 +69,7 @@ export default function ActiveQuizzesPage() {
 
       {attempts.length === 0 ? (
         <div style={{ padding: '2rem', textAlign: 'center', color: '#666' }}>
-          <p>You don't have any active quizzes.</p>
+          <p>You don&apos;t have any active quizzes.</p>
           <Link
             href="/quizzes"
             style={{

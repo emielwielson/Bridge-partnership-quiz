@@ -122,7 +122,7 @@ export default function StartQuizPage() {
         </button>
         <h1 style={{ fontSize: '2rem', marginBottom: '2rem' }}>Select Partnership</h1>
         {partnerships.length === 0 ? (
-          <p>You don't have any partnerships. <Link href="/partnerships/create" style={{ color: '#0070f3' }}>Create one</Link> to start.</p>
+          <p>You don&apos;t have any partnerships. <Link href="/partnerships/create" style={{ color: '#0070f3' }}>Create one</Link> to start.</p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {partnerships.map((partnership) => (

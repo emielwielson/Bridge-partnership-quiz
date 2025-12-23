@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 
 export default function ClassResultsPage() {
@@ -13,11 +13,29 @@ export default function ClassResultsPage() {
     fetchClasses()
   }, [])
 
+  const fetchResults = useCallback(async () => {
+    if (!selectedClassId) return
+    
+    try {
+      setLoadingResults(true)
+      const response = await fetch(`/api/results/player-class?classId=${selectedClassId}`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch results')
+      }
+      const data = await response.json()
+      setResults(data)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load results')
+    } finally {
+      setLoadingResults(false)
+    }
+  }, [selectedClassId])
+
   useEffect(() => {
     if (selectedClassId) {
       fetchResults()
     }
-  }, [selectedClassId])
+  }, [selectedClassId, fetchResults])
 
   const fetchClasses = async () => {
     try {
@@ -35,18 +53,6 @@ export default function ClassResultsPage() {
     }
   }
 
-  const fetchResults = async () => {
-    try {
-      const response = await fetch(`/api/results/player-class?classId=${selectedClassId}`)
-      if (!response.ok) {
-        throw new Error('Failed to fetch results')
-      }
-      const data = await response.json()
-      setResults(data)
-    } catch (err) {
-      console.error(err)
-    }
-  }
 
   if (loading && !selectedClassId) {
     return <div>Loading classes...</div>

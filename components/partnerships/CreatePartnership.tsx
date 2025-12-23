@@ -68,7 +68,7 @@ export default function CreatePartnership() {
     <form onSubmit={handleSubmit} style={{ maxWidth: '500px' }}>
       <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Create Partnership</h2>
       <p style={{ marginBottom: '1rem', color: '#666' }}>
-        Enter your partner's invite codes. You must add at least one partner to create a partnership.
+        Enter your partner&apos;s invite codes. You must add at least one partner to create a partnership.
       </p>
 
       <div style={{ marginBottom: '1rem' }}>

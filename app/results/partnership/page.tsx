@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
@@ -15,11 +15,29 @@ export default function PartnershipResultsPage() {
     fetchPartners()
   }, [])
 
+  const fetchResults = useCallback(async () => {
+    if (!selectedPartnerId) return
+    
+    try {
+      setLoading(true)
+      const response = await fetch(`/api/results/player-partnership?partnerId=${selectedPartnerId}`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch results')
+      }
+      const data = await response.json()
+      setResults(data)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load results')
+    } finally {
+      setLoading(false)
+    }
+  }, [selectedPartnerId])
+
   useEffect(() => {
     if (selectedPartnerId) {
       fetchResults()
     }
-  }, [selectedPartnerId])
+  }, [selectedPartnerId, fetchResults])
 
   const fetchPartners = async () => {
     try {
@@ -52,18 +70,6 @@ export default function PartnershipResultsPage() {
     }
   }
 
-  const fetchResults = async () => {
-    try {
-      const response = await fetch(`/api/results/player-partnership?partnerId=${selectedPartnerId}`)
-      if (!response.ok) {
-        throw new Error('Failed to fetch results')
-      }
-      const data = await response.json()
-      setResults(data)
-    } catch (err) {
-      console.error(err)
-    }
-  }
 
   if (loading && !selectedPartnerId) {
     return <div>Loading partners...</div>
@@ -80,7 +86,7 @@ export default function PartnershipResultsPage() {
         </Link>
         <h1 style={{ fontSize: '2rem', marginBottom: '2rem' }}>Select a Partner</h1>
         {partners.length === 0 ? (
-          <p>You don't have any partnerships yet.</p>
+          <p>You don&apos;t have any partnerships yet.</p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {partners.map((partner) => (

@@ -1,7 +1,7 @@
 'use client'
 
 import { useParams, useRouter } from 'next/navigation'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 
 export default function PartnershipDetailPage() {
@@ -14,11 +14,7 @@ export default function PartnershipDetailPage() {
   const [error, setError] = useState('')
   const [data, setData] = useState<any>(null)
 
-  useEffect(() => {
-    fetchData()
-  }, [partnershipId, attemptId])
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true)
       const response = await fetch(
@@ -34,7 +30,11 @@ export default function PartnershipDetailPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [partnershipId, attemptId, quizId])
+
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
 
   if (loading) {
     return <div>Loading...</div>

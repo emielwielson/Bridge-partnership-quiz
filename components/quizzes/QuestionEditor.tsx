@@ -251,7 +251,7 @@ export default function QuestionEditor() {
       }
     }
     return levels
-  }, [bids, getLastContractBid, getContractRank])
+  }, [bids, getLastContractBid, getContractRank, suits])
 
   // Get available suits for a selected level
   const getAvailableSuits = useMemo(() => {
@@ -268,7 +268,7 @@ export default function QuestionEditor() {
       const rank = getContractRank(selectedLevel, suit)
       return rank > minRank
     })
-  }, [selectedLevel, bids, getLastContractBid, getContractRank])
+  }, [selectedLevel, bids, getLastContractBid, getContractRank, suits])
 
   // Check if pass is available
   const isPassAvailable = true
@@ -280,7 +280,7 @@ export default function QuestionEditor() {
     
     const currentPosition = getNextPosition(bids.length)
     return isOpponent(currentPosition, lastContractBid.position)
-  }, [bids, dealer, getLastContractBid, getNextPosition, isOpponent])
+  }, [bids, getLastContractBid, getNextPosition, isOpponent])
 
   // Check if redouble is available
   const isRedoubleAvailable = useMemo(() => {

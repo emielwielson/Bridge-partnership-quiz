@@ -103,7 +103,7 @@ export default function ClassList() {
 
       {studentClasses.length > 0 && (
         <div>
-          <h3 style={{ fontSize: '1.2rem', marginBottom: '0.75rem' }}>Classes I'm In</h3>
+          <h3 style={{ fontSize: '1.2rem', marginBottom: '0.75rem' }}>Classes I&apos;m In</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {studentClasses.map((classData) => (
               <div
@@ -142,7 +142,7 @@ export default function ClassList() {
 
       {teacherClasses.length === 0 && studentClasses.length === 0 && (
         <div>
-          <p>You're not in any classes yet.</p>
+          <p>You&apos;re not in any classes yet.</p>
           <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem' }}>
             <Link
               href="/classes/create"

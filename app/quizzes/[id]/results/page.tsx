@@ -1,7 +1,7 @@
 'use client'
 
 import { useParams, useRouter } from 'next/navigation'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 
 interface QuestionStat {
@@ -23,13 +23,7 @@ export default function QuizmasterResultsPage() {
   const [overview, setOverview] = useState<any>(null)
   const [activeView, setActiveView] = useState<'overview' | 'partnerships' | 'questions'>('overview')
 
-  useEffect(() => {
-    if (quizId) {
-      fetchOverview()
-    }
-  }, [quizId])
-
-  const fetchOverview = async () => {
+  const fetchOverview = useCallback(async () => {
     try {
       setLoading(true)
       const response = await fetch(`/api/results/quizmaster-overview?quizId=${quizId}`)
@@ -43,7 +37,13 @@ export default function QuizmasterResultsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [quizId])
+
+  useEffect(() => {
+    if (quizId) {
+      fetchOverview()
+    }
+  }, [quizId, fetchOverview])
 
   if (loading) {
     return <div>Loading results...</div>
@@ -187,11 +187,7 @@ function PartnershipListView({ quizId }: { quizId: string }) {
   const [partnerships, setPartnerships] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    fetchPartnerships()
-  }, [quizId])
-
-  const fetchPartnerships = async () => {
+  const fetchPartnerships = useCallback(async () => {
     try {
       setLoading(true)
       const response = await fetch(`/api/results/partnership-list?quizId=${quizId}`)
@@ -205,7 +201,11 @@ function PartnershipListView({ quizId }: { quizId: string }) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [quizId])
+
+  useEffect(() => {
+    fetchPartnerships()
+  }, [fetchPartnerships])
 
   if (loading) {
     return <div>Loading partnerships...</div>

@@ -124,7 +124,7 @@ export default function CreateClass() {
     <form onSubmit={handleSubmit} style={{ maxWidth: '400px' }}>
       <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Create Class</h2>
       <p style={{ marginBottom: '1rem', color: '#666' }}>
-        Create a new class. You'll be the teacher and can share the class link with students.
+        Create a new class. You&apos;ll be the teacher and can share the class link with students.
       </p>
 
       <div style={{ marginBottom: '1.5rem' }}>

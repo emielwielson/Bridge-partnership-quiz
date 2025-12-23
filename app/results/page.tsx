@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import QuestionDisplay from '@/components/quizzes/QuestionDisplay'
 import { AnswerType } from '@prisma/client'
@@ -71,29 +71,7 @@ export default function ResultsPage() {
     fetchPartnerships()
   }, [])
 
-  useEffect(() => {
-    if (partnerships.length > 0 && currentUserId) {
-      fetchAllResults()
-    }
-  }, [partnerships, currentUserId])
-
-  const fetchPartnerships = async () => {
-    try {
-      const response = await fetch('/api/partnerships/list')
-      if (!response.ok) {
-        throw new Error('Failed to fetch partnerships')
-      }
-      const data = await response.json()
-      setPartnerships(data.partnerships || [])
-      setCurrentUserId(data.currentUserId)
-    } catch (err) {
-      console.error(err)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const fetchAllResults = async () => {
+  const fetchAllResults = useCallback(async () => {
     if (!currentUserId || partnerships.length === 0) {
       setLoadingResults(false)
       return
@@ -168,7 +146,30 @@ export default function ResultsPage() {
     } finally {
       setLoadingResults(false)
     }
+  }, [currentUserId, partnerships])
+
+  useEffect(() => {
+    if (partnerships.length > 0 && currentUserId) {
+      fetchAllResults()
+    }
+  }, [partnerships, currentUserId, fetchAllResults])
+
+  const fetchPartnerships = async () => {
+    try {
+      const response = await fetch('/api/partnerships/list')
+      if (!response.ok) {
+        throw new Error('Failed to fetch partnerships')
+      }
+      const data = await response.json()
+      setPartnerships(data.partnerships || [])
+      setCurrentUserId(data.currentUserId)
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
   }
+
 
   const getFilteredResults = () => {
     if (selectedPartnershipId) {

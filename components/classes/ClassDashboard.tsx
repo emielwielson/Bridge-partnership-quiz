@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 
 interface ClassData {
@@ -33,13 +33,7 @@ export default function ClassDashboard() {
   const [error, setError] = useState('')
   const [userRole, setUserRole] = useState<'TEACHER' | 'STUDENT' | null>(null)
 
-  useEffect(() => {
-    if (classId) {
-      fetchClassData()
-    }
-  }, [classId])
-
-  const fetchClassData = async () => {
+  const fetchClassData = useCallback(async () => {
     try {
       const response = await fetch('/api/classes/list')
       if (!response.ok) {
@@ -64,7 +58,13 @@ export default function ClassDashboard() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [classId])
+
+  useEffect(() => {
+    if (classId) {
+      fetchClassData()
+    }
+  }, [classId, fetchClassData])
 
   const copyClassCode = () => {
     if (classData?.classLink) {

@@ -1,7 +1,7 @@
 'use client'
 
 import { useParams, useRouter } from 'next/navigation'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import QuizPlayer from '@/components/quizzes/QuizPlayer'
 
 export default function TakeQuizPage() {
@@ -33,9 +33,9 @@ export default function TakeQuizPage() {
     }
 
     createAttempt(partnershipIdParam, classIdParam)
-  }, [quizId, attemptId])
+  }, [quizId, attemptId, createAttempt])
 
-  const createAttempt = async (partnershipIdParam: string | null, classIdParam: string | null) => {
+  const createAttempt = useCallback(async (partnershipIdParam: string | null, classIdParam: string | null) => {
     if (creatingAttempt.current) {
       return
     }
@@ -66,7 +66,7 @@ export default function TakeQuizPage() {
       setLoading(false)
       creatingAttempt.current = false
     }
-  }
+  }, [quizId])
 
   if (loading) {
     return <div>Starting quiz...</div>

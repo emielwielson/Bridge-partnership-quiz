@@ -122,7 +122,7 @@ export default function InvitePartner() {
 
       <div style={{ marginBottom: '1.5rem' }}>
         <label htmlFor="inviteCode" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
-          Partner's Invite Code
+          Partner&apos;s Invite Code
         </label>
         <input
           id="inviteCode"

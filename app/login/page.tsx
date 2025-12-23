@@ -32,7 +32,7 @@ export default function LoginPage() {
           textAlign: 'center',
           color: '#666',
         }}>
-          Don't have an account?{' '}
+          Don&apos;t have an account?{' '}
           <Link 
             href="/register"
             style={{ color: '#0070f3', textDecoration: 'underline' }}
