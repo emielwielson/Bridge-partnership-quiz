@@ -341,9 +341,9 @@ export default function QuestionDisplay({
                   let cardOffsetStyle: React.CSSProperties = {}
                   const cardHeight = 50 // Height of the card
                   if (pos === 'N') {
-                    // North: stack left to right, overlap from left
-                    // Second card's left edge is further right than first card's left edge
-                    cardOffsetStyle = { marginLeft: idx > 0 ? `-${overlap}px` : '0' }
+                    // North: stack left to right, second card further right than first
+                    // Use same offset calculation as East/West for consistency
+                    cardOffsetStyle = { marginLeft: idx > 0 ? `${cardHeight - overlap - 11}px` : '0' }
                   } else if (pos === 'E') {
                     // East: stack top to bottom, second card lower than first
                     // With column direction, cards flow down naturally
@@ -351,8 +351,9 @@ export default function QuestionDisplay({
                     // while maintaining overlap
                     cardOffsetStyle = { marginTop: idx > 0 ? `${cardHeight - overlap - 11}px` : '0' }
                   } else if (pos === 'S') {
-                    // South: stack right to left, overlap from right
-                    cardOffsetStyle = { marginRight: idx > 0 ? `-${overlap}px` : '0' }
+                    // South: stack right to left, second card further left than first
+                    // Use same offset calculation as East/West for consistency
+                    cardOffsetStyle = { marginRight: idx > 0 ? `${cardHeight - overlap - 11}px` : '0' }
                   } else if (pos === 'W') {
                     // West: stack bottom to top, second card higher than first
                     // With column-reverse direction, cards flow up naturally
