@@ -920,12 +920,17 @@ export default function QuestionEditor() {
                       // Calculate offset based on position
                       // Cards overlap so only the edge with the symbol is visible
                       let cardOffsetStyle: React.CSSProperties = {}
+                      const cardHeight = 50 // Height of the card
                       if (pos === 'N') {
                         // North: stack left to right, overlap from left
+                        // Second card's left edge is further right than first card's left edge
                         cardOffsetStyle = { marginLeft: idx > 0 ? `-${overlap}px` : '0' }
                       } else if (pos === 'E') {
-                        // East: stack top to bottom, overlap from top
-                        cardOffsetStyle = { marginTop: idx > 0 ? `-${overlap}px` : '0' }
+                        // East: stack top to bottom, second card lower than first
+                        // With column direction, cards flow down naturally
+                        // Push second card down by (cardHeight - overlap) to make it appear lower
+                        // while maintaining overlap
+                        cardOffsetStyle = { marginTop: idx > 0 ? `${cardHeight - overlap}px` : '0' }
                       } else if (pos === 'S') {
                         // South: stack right to left, overlap from right
                         cardOffsetStyle = { marginRight: idx > 0 ? `-${overlap}px` : '0' }
