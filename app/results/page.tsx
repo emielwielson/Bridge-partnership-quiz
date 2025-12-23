@@ -16,6 +16,15 @@ interface Partnership {
   }>
 }
 
+interface Class {
+  id: string
+  name: string
+  teacher: {
+    id: string
+    username: string
+  }
+}
+
 interface QuizResult {
   quizId: string
   quizTitle: string
@@ -64,8 +73,10 @@ interface QuizDetail {
 export default function ResultsPage() {
   const searchParams = useSearchParams()
   const [partnerships, setPartnerships] = useState<Partnership[]>([])
+  const [classes, setClasses] = useState<Class[]>([])
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [selectedPartnershipId, setSelectedPartnershipId] = useState<string | null>(null)
+  const [selectedClassId, setSelectedClassId] = useState<string | null>(null)
   const [allResults, setAllResults] = useState<QuizResult[]>([])
   const [loading, setLoading] = useState(true)
   const [loadingResults, setLoadingResults] = useState(false)
@@ -74,12 +85,19 @@ export default function ResultsPage() {
   const [loadingDetails, setLoadingDetails] = useState<Set<string>>(new Set())
 
   useEffect(() => {
-    // Check if partnershipId is provided in URL query params
+    // Check if partnershipId or classId is provided in URL query params
     const partnershipIdFromUrl = searchParams.get('partnershipId')
+    const classIdFromUrl = searchParams.get('classId')
     if (partnershipIdFromUrl) {
       setSelectedPartnershipId(partnershipIdFromUrl)
+      setSelectedClassId(null) // Clear class selection when partnership is selected
+    }
+    if (classIdFromUrl) {
+      setSelectedClassId(classIdFromUrl)
+      setSelectedPartnershipId(null) // Clear partnership selection when class is selected
     }
     fetchPartnerships()
+    fetchClasses()
   }, [searchParams])
 
   const fetchAllResults = useCallback(async () => {
@@ -133,44 +151,34 @@ export default function ResultsPage() {
       }
 
       // Fetch results for classes
-      try {
-        const classesResponse = await fetch('/api/classes/list')
-        if (classesResponse.ok) {
-          const classesData = await classesResponse.json()
-          const allClasses = [...(classesData.teacherClasses || []), ...(classesData.studentClasses || [])]
-          
-          for (const cls of allClasses) {
-            try {
-              const response = await fetch(`/api/results/player-class?classId=${cls.id}`)
-              if (response.ok) {
-                const data = await response.json()
-                if (data.quizzes && data.quizzes.length > 0) {
-                  data.quizzes.forEach((quiz: any) => {
-                    // Include all quizzes that have been started (even if not all students completed)
-                    if (quiz.completedAt) {
-                      results.push({
-                        quizId: quiz.quizId,
-                        quizTitle: quiz.quizTitle,
-                        quizTopic: quiz.quizTopic,
-                        classId: cls.id,
-                        className: cls.name,
-                        completedAt: quiz.completedAt,
-                        attemptId: quiz.quizId, // Use quizId as identifier for class results
-                        isClassResult: true,
-                        studentsCompleted: quiz.studentsCompleted || 0,
-                        totalStudents: quiz.totalStudents || 0,
-                      })
-                    }
+      for (const cls of classes) {
+        try {
+          const response = await fetch(`/api/results/player-class?classId=${cls.id}`)
+          if (response.ok) {
+            const data = await response.json()
+            if (data.quizzes && data.quizzes.length > 0) {
+              data.quizzes.forEach((quiz: any) => {
+                // Include all quizzes that have been started (even if not all students completed)
+                if (quiz.completedAt) {
+                  results.push({
+                    quizId: quiz.quizId,
+                    quizTitle: quiz.quizTitle,
+                    quizTopic: quiz.quizTopic,
+                    classId: cls.id,
+                    className: cls.name,
+                    completedAt: quiz.completedAt,
+                    attemptId: quiz.quizId, // Use quizId as identifier for class results
+                    isClassResult: true,
+                    studentsCompleted: quiz.studentsCompleted || 0,
+                    totalStudents: quiz.totalStudents || 0,
                   })
                 }
-              }
-            } catch (err) {
-              console.error(`Failed to fetch results for class ${cls.id}:`, err)
+              })
             }
           }
+        } catch (err) {
+          console.error(`Failed to fetch results for class ${cls.id}:`, err)
         }
-      } catch (err) {
-        console.error('Failed to fetch classes:', err)
       }
 
       // Sort all results by completedAt date (most recent first)
@@ -186,13 +194,13 @@ export default function ResultsPage() {
     } finally {
       setLoadingResults(false)
     }
-  }, [currentUserId, partnerships])
+  }, [currentUserId, partnerships, classes])
 
   useEffect(() => {
-    if (partnerships.length > 0 && currentUserId) {
+    if (currentUserId && (partnerships.length > 0 || classes.length > 0)) {
       fetchAllResults()
     }
-  }, [partnerships, currentUserId, fetchAllResults])
+  }, [partnerships, classes, currentUserId, fetchAllResults])
 
   const fetchPartnerships = async () => {
     try {
@@ -210,10 +218,28 @@ export default function ResultsPage() {
     }
   }
 
+  const fetchClasses = async () => {
+    try {
+      const response = await fetch('/api/classes/list')
+      if (!response.ok) {
+        throw new Error('Failed to fetch classes')
+      }
+      const data = await response.json()
+      // Combine teacher and student classes
+      const allClasses = [...(data.teacherClasses || []), ...(data.studentClasses || [])]
+      setClasses(allClasses)
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
 
   const getFilteredResults = () => {
     if (selectedPartnershipId) {
       return allResults.filter((r) => r.partnershipId === selectedPartnershipId)
+    }
+    if (selectedClassId) {
+      return allResults.filter((r) => r.classId === selectedClassId)
     }
     return allResults
   }
@@ -363,29 +389,60 @@ export default function ResultsPage() {
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem' }}>
       <h1 style={{ fontSize: '2rem', marginBottom: '2rem' }}>Results</h1>
 
-      {/* Partnership Filter */}
-      <div style={{ marginBottom: '2rem' }}>
-        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
-          Filter by Partnership:
-        </label>
-        <select
-          value={selectedPartnershipId || ''}
-          onChange={(e) => setSelectedPartnershipId(e.target.value || null)}
-          style={{
-            padding: '0.75rem',
-            fontSize: '1rem',
-            border: '1px solid #ddd',
-            borderRadius: '4px',
-            minWidth: '300px',
-          }}
-        >
-          <option value="">All Partnerships</option>
-          {partnerships.map((partnership) => (
-            <option key={partnership.id} value={partnership.id}>
-              {partnership.members.map((m) => m.user.username).join(' - ')}
-            </option>
-          ))}
-        </select>
+      {/* Filter by Partnership or Class */}
+      <div style={{ marginBottom: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div>
+          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+            Filter by Partnership:
+          </label>
+          <select
+            value={selectedPartnershipId || ''}
+            onChange={(e) => {
+              setSelectedPartnershipId(e.target.value || null)
+              setSelectedClassId(null) // Clear class selection when partnership is selected
+            }}
+            style={{
+              padding: '0.75rem',
+              fontSize: '1rem',
+              border: '1px solid #ddd',
+              borderRadius: '4px',
+              minWidth: '300px',
+            }}
+          >
+            <option value="">All Partnerships</option>
+            {partnerships.map((partnership) => (
+              <option key={partnership.id} value={partnership.id}>
+                {partnership.members.map((m) => m.user.username).join(' - ')}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+            Filter by Class:
+          </label>
+          <select
+            value={selectedClassId || ''}
+            onChange={(e) => {
+              setSelectedClassId(e.target.value || null)
+              setSelectedPartnershipId(null) // Clear partnership selection when class is selected
+            }}
+            style={{
+              padding: '0.75rem',
+              fontSize: '1rem',
+              border: '1px solid #ddd',
+              borderRadius: '4px',
+              minWidth: '300px',
+            }}
+          >
+            <option value="">All Classes</option>
+            {classes.map((cls) => (
+              <option key={cls.id} value={cls.id}>
+                {cls.name} (Teacher: {cls.teacher.username})
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {loadingResults ? (
