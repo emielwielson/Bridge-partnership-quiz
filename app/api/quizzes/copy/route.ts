@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
             quizId: newQuiz.id,
             prompt: question.prompt,
             answerType: question.answerType,
-            answerOptions: question.answerOptions, // Copy answer options
+            answerOptions: question.answerOptions ?? undefined, // Copy answer options
             order: question.order,
             auction: {
               create: {
