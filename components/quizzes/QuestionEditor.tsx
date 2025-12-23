@@ -605,6 +605,95 @@ export default function QuestionEditor() {
     NO_TRUMP: 'NT',
   }
 
+  // Get card color for suit
+  const getSuitColor = (suit: Suit): string => {
+    switch (suit) {
+      case Suit.CLUB:
+        return '#22c55e' // green
+      case Suit.DIAMOND:
+        return '#f97316' // orange
+      case Suit.HEART:
+        return '#ef4444' // red
+      case Suit.SPADE:
+        return '#1e40af' // dark blue
+      case Suit.NO_TRUMP:
+        return '#000000' // black
+      default:
+        return '#000000'
+    }
+  }
+
+  // Get card style for a bid
+  const getBidCardStyle = (bid: Bid, index: number, totalBids: number): React.CSSProperties => {
+    const baseStyle: React.CSSProperties = {
+      backgroundColor: '#fff',
+      border: bid.alert ? '2px solid #f90' : '1px solid #333',
+      borderRadius: '6px',
+      boxShadow: '0 2px 4px rgba(0,0,0,0.2), 0 1px 2px rgba(0,0,0,0.1)',
+      position: 'relative',
+      zIndex: totalBids - index, // Newer cards on top
+      transition: 'all 0.2s ease',
+    }
+
+    if (bid.bidType === BidType.CONTRACT && bid.suit) {
+      return {
+        ...baseStyle,
+        width: '60px',
+        height: '90px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: getSuitColor(bid.suit),
+        fontWeight: 'bold',
+        fontSize: '1.2rem',
+      }
+    } else if (bid.bidType === BidType.DOUBLE) {
+      return {
+        ...baseStyle,
+        width: '45px',
+        height: '70px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#ef4444', // red
+        color: '#fff',
+        fontWeight: 'bold',
+        fontSize: '1.1rem',
+      }
+    } else if (bid.bidType === BidType.REDOUBLE) {
+      return {
+        ...baseStyle,
+        width: '45px',
+        height: '70px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#1e40af', // dark blue
+        color: '#fff',
+        fontWeight: 'bold',
+        fontSize: '0.9rem',
+      }
+    } else if (bid.bidType === BidType.PASS) {
+      return {
+        ...baseStyle,
+        width: '60px',
+        height: '90px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#22c55e', // green
+        color: '#fff',
+        fontWeight: 'bold',
+        fontSize: '0.85rem',
+        textAlign: 'center',
+        padding: '0.25rem',
+      }
+    }
+
+    return baseStyle
+  }
+
   if (loading && questionId && bids.length === 0 && !prompt) {
     return <div>Loading question...</div>
   }
@@ -791,27 +880,68 @@ export default function QuestionEditor() {
                 }
 
                 return (
-                  <div key={pos} style={{ ...positionStyle, display: 'flex', flexDirection: 'column', gap: '0.25rem', alignItems: pos === 'E' || pos === 'W' ? 'center' : 'center' }}>
+                  <div 
+                    key={pos} 
+                    style={{ 
+                      ...positionStyle, 
+                      display: 'flex', 
+                      flexDirection: pos === 'N' || pos === 'S' ? 'column' : 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0',
+                    }}
+                  >
                     {positionBids.map((bid, idx) => {
                       const globalIndex = bids.findIndex(b => b === bid)
+                      const cardStyle = getBidCardStyle(bid, idx, positionBids.length)
+                      const offset = idx * 3 // Stack offset in pixels
+                      
+                      // Calculate offset based on position
+                      let offsetStyle: React.CSSProperties = {}
+                      if (pos === 'N' || pos === 'S') {
+                        offsetStyle = { marginTop: idx > 0 ? `-${offset}px` : '0' }
+                      } else {
+                        offsetStyle = { marginLeft: idx > 0 ? `-${offset}px` : '0' }
+                      }
+                      
                       return (
-                        <div key={idx} style={{ position: 'relative' }}>
+                        <div key={idx} style={{ position: 'relative', ...offsetStyle }}>
                           <button
                             type="button"
                             onClick={() => handleBidInTableClick(globalIndex)}
                             style={{
-                              padding: '0.5rem 1rem',
-                              border: bid.alert ? '2px solid #f90' : '1px solid #333',
-                              borderRadius: '4px',
-                              backgroundColor: '#fff',
+                              ...cardStyle,
                               cursor: bid.bidType === BidType.CONTRACT ? 'pointer' : 'default',
-                              fontWeight: bid.alert ? 'bold' : 'normal',
-                              fontSize: '0.9rem',
                             }}
                             disabled={bid.bidType !== BidType.CONTRACT}
                           >
-                            {getBidDisplay(bid)}
-                            {bid.alert && ' ⚠'}
+                            {bid.bidType === BidType.CONTRACT && bid.suit && (
+                              <>
+                                <div style={{ fontSize: '0.7rem', marginBottom: '0.2rem' }}>
+                                  {bid.level}{suitSymbols[bid.suit]}
+                                </div>
+                                <div style={{ fontSize: '1.8rem', lineHeight: '1' }}>
+                                  {suitSymbols[bid.suit]}
+                                </div>
+                                <div style={{ fontSize: '1.2rem', marginTop: '0.2rem' }}>
+                                  {bid.level}
+                                </div>
+                                {bid.alert && (
+                                  <div style={{
+                                    position: 'absolute',
+                                    top: '2px',
+                                    right: '2px',
+                                    fontSize: '0.7rem',
+                                    color: '#f90',
+                                  }}>
+                                    ⚠
+                                  </div>
+                                )}
+                              </>
+                            )}
+                            {bid.bidType === BidType.DOUBLE && 'X'}
+                            {bid.bidType === BidType.REDOUBLE && 'XX'}
+                            {bid.bidType === BidType.PASS && 'PASS'}
                           </button>
                           {editingAlert === globalIndex && (
                             <div
