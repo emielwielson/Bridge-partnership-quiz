@@ -75,15 +75,15 @@ export async function POST(request: NextRequest) {
     // Validate auction
     type FormattedBid = {
       bidType: BidType
-      level: number | null
-      suit: Suit | undefined
+      level?: number
+      suit?: Suit
       position: string
       sequence: number
     }
     
     const formattedBids: FormattedBid[] = auction.bids.map((bid: any) => ({
       bidType: bid.bidType as BidType,
-      level: bid.level,
+      level: bid.level ?? undefined,
       suit: bid.suit as Suit | undefined,
       position: bid.position,
       sequence: bid.sequence,
