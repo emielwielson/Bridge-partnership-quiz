@@ -15,26 +15,6 @@ export default function TakeQuizPage() {
   const [classId, setClassId] = useState<string | null>(null)
   const creatingAttempt = useRef(false)
 
-  useEffect(() => {
-    // Prevent multiple calls
-    if (creatingAttempt.current || attemptId) {
-      return
-    }
-
-    // Get partnership or class from URL params or query
-    const urlParams = new URLSearchParams(window.location.search)
-    const partnershipIdParam = urlParams.get('partnershipId')
-    const classIdParam = urlParams.get('classId')
-
-    if (partnershipIdParam) {
-      setPartnershipId(partnershipIdParam)
-    } else if (classIdParam) {
-      setClassId(classIdParam)
-    }
-
-    createAttempt(partnershipIdParam, classIdParam)
-  }, [quizId, attemptId, createAttempt])
-
   const createAttempt = useCallback(async (partnershipIdParam: string | null, classIdParam: string | null) => {
     if (creatingAttempt.current) {
       return
@@ -67,6 +47,26 @@ export default function TakeQuizPage() {
       creatingAttempt.current = false
     }
   }, [quizId])
+
+  useEffect(() => {
+    // Prevent multiple calls
+    if (creatingAttempt.current || attemptId) {
+      return
+    }
+
+    // Get partnership or class from URL params or query
+    const urlParams = new URLSearchParams(window.location.search)
+    const partnershipIdParam = urlParams.get('partnershipId')
+    const classIdParam = urlParams.get('classId')
+
+    if (partnershipIdParam) {
+      setPartnershipId(partnershipIdParam)
+    } else if (classIdParam) {
+      setClassId(classIdParam)
+    }
+
+    createAttempt(partnershipIdParam, classIdParam)
+  }, [quizId, attemptId, createAttempt])
 
   if (loading) {
     return <div>Starting quiz...</div>
