@@ -40,6 +40,7 @@ export async function POST(request: NextRequest) {
           },
         },
       },
+      // Note: answerOptions is a JSON field and will be included automatically
     })
 
     if (!originalQuiz) {
@@ -72,51 +73,49 @@ export async function POST(request: NextRequest) {
 
       // Copy all questions with auctions and bids
       for (const question of originalQuiz.questions) {
-        // Create auction first
-        const newAuction = await tx.auction.create({
-          data: {
-            questionId: '', // Will be set after question creation
-            dealer: question.auction!.dealer,
-            vulnerability: question.auction!.vulnerability,
-          },
-        })
-
-        // Create question
+        // Create question with nested auction creation (using Prisma nested create)
         const newQuestion = await tx.question.create({
           data: {
             quizId: newQuiz.id,
-            auctionId: newAuction.id,
             prompt: question.prompt,
             answerType: question.answerType,
+            answerOptions: question.answerOptions, // Copy answer options
             order: question.order,
+            auction: {
+              create: {
+                dealer: question.auction!.dealer,
+                vulnerability: question.auction!.vulnerability,
+                bids: {
+                  create: question.auction!.bids.map(bid => ({
+                    bidType: bid.bidType,
+                    level: bid.level,
+                    suit: bid.suit,
+                    position: bid.position,
+                    sequence: bid.sequence,
+                  })),
+                },
+              },
+            },
+          },
+          include: {
+            auction: {
+              include: {
+                bids: true,
+              },
+            },
           },
         })
 
-        // Update auction with question ID
-        await tx.auction.update({
-          where: { id: newAuction.id },
-          data: { questionId: newQuestion.id },
-        })
-
-        // Copy all bids
-        for (const bid of question.auction!.bids) {
-          const newBid = await tx.bid.create({
-            data: {
-              auctionId: newAuction.id,
-              bidType: bid.bidType,
-              level: bid.level,
-              suit: bid.suit,
-              position: bid.position,
-              sequence: bid.sequence,
-            },
-          })
-
-          // Copy alert if exists
-          if (bid.alert) {
+        // Copy alerts for each bid
+        for (let i = 0; i < question.auction!.bids.length; i++) {
+          const originalBid = question.auction!.bids[i]
+          const newBid = newQuestion.auction!.bids[i]
+          
+          if (originalBid.alert && newBid) {
             await tx.alert.create({
               data: {
                 bidId: newBid.id,
-                meaning: bid.alert.meaning,
+                meaning: originalBid.alert.meaning,
               },
             })
           }

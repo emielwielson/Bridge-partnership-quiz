@@ -30,6 +30,11 @@ interface Quiz {
   topic: string
   state: 'DRAFT' | 'PUBLISHED'
   questions: Question[]
+  creator?: {
+    id: string
+    username: string
+  }
+  creatorId?: string
 }
 
 export default function QuizEditor() {
@@ -40,6 +45,9 @@ export default function QuizEditor() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [showQuestionEditor, setShowQuestionEditor] = useState(false)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [editingTitle, setEditingTitle] = useState(false)
+  const [titleValue, setTitleValue] = useState('')
 
   useEffect(() => {
     if (quizId) {
@@ -51,12 +59,23 @@ export default function QuizEditor() {
     try {
       const response = await fetch(`/api/quizzes/get?id=${quizId}`)
       if (!response.ok) {
-        throw new Error('Failed to fetch quiz')
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to fetch quiz')
       }
       const data = await response.json()
       setQuiz(data.quiz)
+      setTitleValue(data.quiz.title)
+      
+      // Get current user ID
+      const userResponse = await fetch('/api/auth/session')
+      if (userResponse.ok) {
+        const userData = await userResponse.json()
+        if (userData.authenticated && userData.user) {
+          setCurrentUserId(userData.user.id)
+        }
+      }
     } catch (err) {
-      setError('Failed to load quiz')
+      setError(err instanceof Error ? err.message : 'Failed to load quiz')
       console.error(err)
     } finally {
       setLoading(false)
@@ -86,6 +105,71 @@ export default function QuizEditor() {
     }
   }
 
+  const handleCopy = async () => {
+    if (!confirm('This will create a copy of this quiz that you can edit. Continue?')) {
+      return
+    }
+
+    try {
+      const response = await fetch('/api/quizzes/copy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quizId }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to copy quiz')
+      }
+
+      const data = await response.json()
+      // Navigate to the copied quiz
+      router.push(`/quizzes/${data.quiz.id}/edit`)
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to copy quiz')
+    }
+  }
+
+  const isCreator = currentUserId && quiz && (quiz.creatorId === currentUserId || quiz.creator?.id === currentUserId)
+  const canEditTitle = isCreator && quiz && quiz.state === 'DRAFT'
+
+  const handleTitleSave = async () => {
+    if (!quiz || !titleValue.trim()) {
+      setTitleValue(quiz?.title || '')
+      setEditingTitle(false)
+      return
+    }
+
+    try {
+      const response = await fetch('/api/quizzes/update', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          quizId: quiz.id,
+          title: titleValue.trim(),
+        }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to update title')
+      }
+
+      // Update local state
+      setQuiz({ ...quiz, title: titleValue.trim() })
+      setEditingTitle(false)
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to update title')
+      setTitleValue(quiz.title)
+      setEditingTitle(false)
+    }
+  }
+
+  const handleTitleCancel = () => {
+    setTitleValue(quiz?.title || '')
+    setEditingTitle(false)
+  }
+
   if (loading) {
     return <div>Loading quiz...</div>
   }
@@ -98,8 +182,79 @@ export default function QuizEditor() {
     <div>
       <div style={{ marginBottom: '2rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1rem' }}>
-          <div>
-            <h1 style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>{quiz.title}</h1>
+          <div style={{ flex: 1 }}>
+            {editingTitle ? (
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}>
+                <input
+                  type="text"
+                  value={titleValue}
+                  onChange={(e) => setTitleValue(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleTitleSave()
+                    } else if (e.key === 'Escape') {
+                      handleTitleCancel()
+                    }
+                  }}
+                  autoFocus
+                  style={{
+                    fontSize: '2rem',
+                    fontWeight: 'bold',
+                    padding: '0.5rem',
+                    border: '1px solid #0070f3',
+                    borderRadius: '4px',
+                    flex: 1,
+                    maxWidth: '600px',
+                  }}
+                />
+                <button
+                  onClick={handleTitleSave}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    backgroundColor: '#28a745',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Save
+                </button>
+                <button
+                  onClick={handleTitleCancel}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    backgroundColor: '#6c757d',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}>
+                <h1 style={{ fontSize: '2rem', margin: 0 }}>{quiz.title}</h1>
+                {canEditTitle && (
+                  <button
+                    onClick={() => setEditingTitle(true)}
+                    style={{
+                      padding: '0.25rem 0.5rem',
+                      fontSize: '0.875rem',
+                      backgroundColor: 'transparent',
+                      color: '#0070f3',
+                      border: '1px solid #0070f3',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Edit
+                  </button>
+                )}
+              </div>
+            )}
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
               <span
                 style={{
@@ -119,7 +274,7 @@ export default function QuizEditor() {
             )}
           </div>
           <div style={{ display: 'flex', gap: '0.5rem' }}>
-            {quiz.state === 'DRAFT' && (
+            {isCreator && quiz.state === 'DRAFT' && (
               <button
                 onClick={handlePublish}
                 style={{
@@ -134,6 +289,19 @@ export default function QuizEditor() {
                 Publish Quiz
               </button>
             )}
+            <button
+              onClick={handleCopy}
+              style={{
+                padding: '0.75rem 1.5rem',
+                backgroundColor: '#28a745',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+              }}
+            >
+              Copy Quiz
+            </button>
           </div>
         </div>
       </div>
@@ -166,7 +334,7 @@ export default function QuizEditor() {
                     </div>
                     <p>{question.prompt}</p>
                   </div>
-                  {question.editable && (
+                  {question.editable && isCreator && (
                     <button
                       onClick={() => router.push(`/quizzes/${quizId}/questions/${question.id}/edit`)}
                       style={{
@@ -186,21 +354,23 @@ export default function QuizEditor() {
             ))}
           </div>
         )}
-        <div style={{ marginTop: '1rem' }}>
-          <button
-            onClick={() => router.push(`/quizzes/${quizId}/questions/new`)}
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#0070f3',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-            }}
-          >
-            + Add Question
-          </button>
-        </div>
+        {isCreator && (
+          <div style={{ marginTop: '1rem' }}>
+            <button
+              onClick={() => router.push(`/quizzes/${quizId}/questions/new`)}
+              style={{
+                padding: '0.75rem 1.5rem',
+                backgroundColor: '#0070f3',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+              }}
+            >
+              + Add Question
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )
