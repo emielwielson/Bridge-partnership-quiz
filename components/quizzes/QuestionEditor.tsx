@@ -924,8 +924,10 @@ export default function QuestionEditor() {
                       const cardWidth = 80 // Width of the card (for North/South)
                       if (pos === 'N') {
                         // North: stack left to right, second card further right than first
-                        // Use same offset as East/West for consistent spacing
-                        cardOffsetStyle = { marginLeft: idx > 0 ? `${cardHeight - overlap - 11}px` : '0' }
+                        // Use same offset magnitude as East, but positive to move right
+                        // East uses: cardHeight - overlap - 11 = -21px (pulls up, appears lower)
+                        // North uses: -(cardHeight - overlap - 11) = 21px (pushes right)
+                        cardOffsetStyle = { marginLeft: idx > 0 ? `${-(cardHeight - overlap - 11)}px` : '0' }
                       } else if (pos === 'E') {
                         // East: stack top to bottom, second card lower than first
                         // With column direction, cards flow down naturally
