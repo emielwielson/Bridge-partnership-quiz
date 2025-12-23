@@ -11,6 +11,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const search = searchParams.get('search') || ''
     const topic = searchParams.get('topic') || ''
+    const myQuizzes = searchParams.get('myQuizzes') === 'true'
     const page = parseInt(searchParams.get('page') || '1', 10)
     const limit = parseInt(searchParams.get('limit') || '20', 10)
     const skip = (page - 1) * limit
@@ -18,15 +19,26 @@ export async function GET(request: NextRequest) {
     // Build where clause
     const where: any = {}
 
-    // If user is authenticated, show their own quizzes (draft or published) and all published quizzes
-    // If user is not authenticated, only show published quizzes
-    if (user) {
-      where.OR = [
-        { creatorId: user.id }, // User's own quizzes
-        { state: QuizState.PUBLISHED }, // Published quizzes
-      ]
+    // If filtering by "my quizzes", only show user's own quizzes
+    if (myQuizzes) {
+      if (!user) {
+        return NextResponse.json(
+          { error: 'Authentication required to filter by my quizzes' },
+          { status: 401 }
+        )
+      }
+      where.creatorId = user.id
     } else {
-      where.state = QuizState.PUBLISHED
+      // If user is authenticated, show their own quizzes (draft or published) and all published quizzes
+      // If user is not authenticated, only show published quizzes
+      if (user) {
+        where.OR = [
+          { creatorId: user.id }, // User's own quizzes
+          { state: QuizState.PUBLISHED }, // Published quizzes
+        ]
+      } else {
+        where.state = QuizState.PUBLISHED
+      }
     }
 
     // Add search filter

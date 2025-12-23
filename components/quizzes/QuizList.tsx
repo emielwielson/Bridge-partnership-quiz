@@ -24,6 +24,8 @@ export default function QuizList() {
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
   const [topic, setTopic] = useState('')
+  const [myQuizzes, setMyQuizzes] = useState(false)
+  const [showDrafts, setShowDrafts] = useState(true)
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
 
@@ -33,6 +35,7 @@ export default function QuizList() {
       const params = new URLSearchParams()
       if (search) params.append('search', search)
       if (topic) params.append('topic', topic)
+      if (myQuizzes) params.append('myQuizzes', 'true')
       params.append('page', page.toString())
 
       const response = await fetch(`/api/quizzes/list?${params.toString()}`)
@@ -48,7 +51,7 @@ export default function QuizList() {
     } finally {
       setLoading(false)
     }
-  }, [search, topic, page])
+  }, [search, topic, myQuizzes, page])
 
   useEffect(() => {
     fetchQuizzes()
@@ -63,6 +66,20 @@ export default function QuizList() {
     setTopic(e.target.value)
     setPage(1)
   }
+
+  const handleMyQuizzesToggle = () => {
+    setMyQuizzes(!myQuizzes)
+    setPage(1)
+  }
+
+  const handleShowDraftsToggle = () => {
+    setShowDrafts(!showDrafts)
+  }
+
+  // Filter quizzes based on showDrafts setting
+  const filteredQuizzes = showDrafts
+    ? quizzes
+    : quizzes.filter((quiz) => quiz.state === 'PUBLISHED')
 
   // Predefined topics (can be extended)
   const topics = [
@@ -118,10 +135,50 @@ export default function QuizList() {
               </option>
             ))}
           </select>
+          <button
+            onClick={handleMyQuizzesToggle}
+            style={{
+              padding: '0.75rem 1.5rem',
+              border: '1px solid #ddd',
+              borderRadius: '8px',
+              fontSize: '1rem',
+              backgroundColor: myQuizzes ? '#0070f3' : '#fff',
+              color: myQuizzes ? 'white' : '#333',
+              cursor: 'pointer',
+              fontWeight: myQuizzes ? 'bold' : 'normal',
+            }}
+          >
+            My Quizzes
+          </button>
+          <label
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              padding: '0.75rem 1rem',
+              border: '1px solid #ddd',
+              borderRadius: '8px',
+              fontSize: '1rem',
+              cursor: 'pointer',
+              backgroundColor: '#fff',
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={showDrafts}
+              onChange={handleShowDraftsToggle}
+              style={{
+                width: '1.2rem',
+                height: '1.2rem',
+                cursor: 'pointer',
+              }}
+            />
+            <span>Show Drafts</span>
+          </label>
         </div>
       </div>
 
-      {quizzes.length === 0 ? (
+      {filteredQuizzes.length === 0 ? (
         <div>
           <p>No quizzes found.</p>
           <Link href="/quizzes/create" style={{ color: '#0070f3', textDecoration: 'underline' }}>
@@ -131,7 +188,7 @@ export default function QuizList() {
       ) : (
         <>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {quizzes.map((quiz) => (
+            {filteredQuizzes.map((quiz) => (
               <div
                 key={quiz.id}
                 style={{
@@ -189,18 +246,19 @@ export default function QuizList() {
                         Take Quiz
                       </Link>
                     ) : (
-                      <span
+                      <Link
+                        href={`/quizzes/${quiz.id}/edit`}
                         style={{
                           padding: '0.75rem 1.5rem',
-                          backgroundColor: '#e0e0e0',
-                          color: '#666',
+                          backgroundColor: '#0070f3',
+                          color: 'white',
                           borderRadius: '8px',
+                          textDecoration: 'none',
                           display: 'inline-block',
-                          cursor: 'not-allowed',
                         }}
                       >
-                        Draft (Cannot Take)
-                      </span>
+                        Edit
+                      </Link>
                     )}
                   </div>
                 </div>
