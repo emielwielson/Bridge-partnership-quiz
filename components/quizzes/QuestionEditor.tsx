@@ -924,17 +924,13 @@ export default function QuestionEditor() {
                         // North: stack left to right, overlap from left
                         cardOffsetStyle = { marginLeft: idx > 0 ? `-${overlap}px` : '0' }
                       } else if (pos === 'E') {
-                        // East: stack top to bottom, second card lower than first
-                        // With column direction, cards flow down naturally
-                        // Use negative margin-top to create overlap, same amount as North/South
+                        // East: stack top to bottom, overlap from top
                         cardOffsetStyle = { marginTop: idx > 0 ? `-${overlap}px` : '0' }
                       } else if (pos === 'S') {
                         // South: stack right to left, overlap from right
                         cardOffsetStyle = { marginRight: idx > 0 ? `-${overlap}px` : '0' }
                       } else if (pos === 'W') {
-                        // West: stack bottom to top, second card higher than first
-                        // With column-reverse direction, cards flow up naturally
-                        // Use negative margin-bottom to create overlap, same amount as North/South
+                        // West: stack bottom to top, overlap from bottom
                         cardOffsetStyle = { marginBottom: idx > 0 ? `-${overlap}px` : '0' }
                       }
                       
@@ -956,17 +952,13 @@ export default function QuestionEditor() {
                                   fontWeight: 'bold',
                                   lineHeight: '1',
                                   marginBottom: '0.2rem',
-                                  textAlign: 'left',
-                                  width: '100%',
                                 }}>
                                   {bid.level}
                                 </div>
                                 <div style={{ 
-                                  fontSize: bid.suit === Suit.NO_TRUMP ? '1rem' : '1.2rem', 
+                                  fontSize: '1.2rem', 
                                   fontWeight: 'bold',
                                   lineHeight: '1',
-                                  textAlign: 'left',
-                                  width: '100%',
                                 }}>
                                   {suitSymbols[bid.suit]}
                                 </div>
@@ -984,67 +976,13 @@ export default function QuestionEditor() {
                               </>
                             )}
                             {bid.bidType === BidType.DOUBLE && (
-                              <div style={{ 
-                                fontSize: '1.1rem', 
-                                fontWeight: 'bold',
-                                lineHeight: '1',
-                              }}>
-                                X
-                              </div>
+                              <div style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>X</div>
                             )}
                             {bid.bidType === BidType.REDOUBLE && (
-                              <>
-                                <div style={{ 
-                                  fontSize: '0.9rem', 
-                                  fontWeight: 'bold',
-                                  lineHeight: '1',
-                                  marginBottom: '0.2rem',
-                                }}>
-                                  X
-                                </div>
-                                <div style={{ 
-                                  fontSize: '0.9rem', 
-                                  fontWeight: 'bold',
-                                  lineHeight: '1',
-                                }}>
-                                  X
-                                </div>
-                              </>
+                              <div style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>XX</div>
                             )}
                             {bid.bidType === BidType.PASS && (
-                              <>
-                                <div style={{ 
-                                  fontSize: '0.65rem', 
-                                  fontWeight: 'bold',
-                                  lineHeight: '1',
-                                  marginBottom: '0.02rem',
-                                }}>
-                                  P
-                                </div>
-                                <div style={{ 
-                                  fontSize: '0.65rem', 
-                                  fontWeight: 'bold',
-                                  lineHeight: '1',
-                                  marginBottom: '0.02rem',
-                                }}>
-                                  A
-                                </div>
-                                <div style={{ 
-                                  fontSize: '0.65rem', 
-                                  fontWeight: 'bold',
-                                  lineHeight: '1',
-                                  marginBottom: '0.02rem',
-                                }}>
-                                  S
-                                </div>
-                                <div style={{ 
-                                  fontSize: '0.65rem', 
-                                  fontWeight: 'bold',
-                                  lineHeight: '1',
-                                }}>
-                                  S
-                                </div>
-                              </>
+                              <div style={{ fontSize: '0.85rem', fontWeight: 'bold', lineHeight: '1.2' }}>PASS</div>
                             )}
                           </button>
                           {editingAlert === globalIndex && (
