@@ -173,6 +173,21 @@ export default function QuizList() {
                       <span style={{ marginLeft: '1rem' }}>By: {quiz.creator.username}</span>
                     </div>
                   </div>
+                  <div>
+                    <Link
+                      href={`/quizzes/${quiz.id}/start`}
+                      style={{
+                        padding: '0.75rem 1.5rem',
+                        backgroundColor: '#28a745',
+                        color: 'white',
+                        borderRadius: '8px',
+                        textDecoration: 'none',
+                        display: 'inline-block',
+                      }}
+                    >
+                      Take Quiz
+                    </Link>
+                  </div>
                 </div>
               </div>
             ))}

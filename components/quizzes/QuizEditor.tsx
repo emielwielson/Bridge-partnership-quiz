@@ -302,6 +302,36 @@ export default function QuizEditor() {
             >
               Copy Quiz
             </button>
+            {quiz.state === 'PUBLISHED' && (
+              <Link
+                href={`/quizzes/${quizId}/start`}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  backgroundColor: '#0070f3',
+                  color: 'white',
+                  borderRadius: '8px',
+                  textDecoration: 'none',
+                  display: 'inline-block',
+                }}
+              >
+                Take Quiz
+              </Link>
+            )}
+            {isCreator && (
+              <Link
+                href={`/quizzes/${quizId}/results`}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  backgroundColor: '#6f42c1',
+                  color: 'white',
+                  borderRadius: '8px',
+                  textDecoration: 'none',
+                  display: 'inline-block',
+                }}
+              >
+                View Results
+              </Link>
+            )}
           </div>
         </div>
       </div>

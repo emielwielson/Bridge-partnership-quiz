@@ -95,6 +95,26 @@ export default function Navigation() {
             Quizzes
           </Link>
           <Link
+            href="/quizzes/active"
+            style={{
+              color: pathname?.startsWith('/quizzes/active') ? '#0070f3' : '#666',
+              textDecoration: 'none',
+              fontWeight: pathname?.startsWith('/quizzes/active') ? '500' : 'normal',
+            }}
+          >
+            Active Quizzes
+          </Link>
+          <Link
+            href="/results"
+            style={{
+              color: pathname?.startsWith('/results') ? '#0070f3' : '#666',
+              textDecoration: 'none',
+              fontWeight: pathname?.startsWith('/results') ? '500' : 'normal',
+            }}
+          >
+            Results
+          </Link>
+          <Link
             href="/player"
             style={{
               color: pathname?.startsWith('/player') ? '#0070f3' : '#666',

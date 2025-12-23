@@ -35,6 +35,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         partnerships,
+        currentUserId: user.id,
       },
       { status: 200 }
     )
