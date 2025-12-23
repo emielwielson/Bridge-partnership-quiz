@@ -83,13 +83,8 @@ export default function ResultsPage() {
 
       // Fetch results for each partnership
       for (const partnership of partnerships) {
-        // Get partner ID (the other member, not the current user)
-        const partnerId = partnership.members.find((m) => m.user.id !== currentUserId)?.user.id
-
-        if (!partnerId) continue
-
         try {
-          const response = await fetch(`/api/results/player-partnership?partnerId=${partnerId}`)
+          const response = await fetch(`/api/results/player-partnership?partnershipId=${partnership.id}`)
           if (response.ok) {
             const data = await response.json()
             if (data.quizzes) {

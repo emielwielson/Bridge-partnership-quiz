@@ -9,26 +9,83 @@ export async function GET(request: NextRequest) {
   try {
     const user = await requireAuth(request)
     const { searchParams } = new URL(request.url)
-    const partnerId = searchParams.get('partnerId')
+    const partnershipId = searchParams.get('partnershipId')
+    const partnerId = searchParams.get('partnerId') // Keep for backward compatibility
 
-    if (!partnerId) {
+    if (!partnershipId && !partnerId) {
       return NextResponse.json(
-        { error: 'Partner ID is required' },
+        { error: 'Either partnershipId or partnerId is required' },
         { status: 400 }
       )
     }
 
-    // Find partnership between current user and partner
-    const partnership = await db.partnership.findFirst({
-      where: {
-        members: {
-          every: {
-            userId: {
-              in: [user.id, partnerId],
+    // Find partnership by ID if provided, otherwise find by partner ID
+    let partnership
+    if (partnershipId) {
+      partnership = await db.partnership.findUnique({
+        where: { id: partnershipId },
+        include: {
+          members: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  username: true,
+                },
+              },
+            },
+          },
+          attempts: {
+            include: {
+              quiz: {
+                select: {
+                  id: true,
+                  title: true,
+                  topic: true,
+                  questions: {
+                    orderBy: {
+                      order: 'asc',
+                    },
+                    select: {
+                      id: true,
+                    },
+                  },
+                },
+              },
+              answers: {
+                include: {
+                  question: {
+                    select: {
+                      id: true,
+                    },
+                  },
+                  user: {
+                    select: {
+                      id: true,
+                      username: true,
+                    },
+                  },
+                },
+              },
+            },
+            orderBy: {
+              startedAt: 'desc',
             },
           },
         },
-      },
+      })
+    } else {
+      // Fallback to old behavior for backward compatibility
+      partnership = await db.partnership.findFirst({
+        where: {
+          members: {
+            every: {
+              userId: {
+                in: [user.id, partnerId!],
+              },
+            },
+          },
+        },
       include: {
         members: {
           include: {
@@ -78,7 +135,8 @@ export async function GET(request: NextRequest) {
           },
         },
       },
-    })
+      })
+    }
 
     if (!partnership) {
       return NextResponse.json(
@@ -87,14 +145,25 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Verify both users are members
+    // Verify user is a member
     const memberIds = partnership.members.map((m) => m.userId)
-    if (!memberIds.includes(user.id) || !memberIds.includes(partnerId)) {
+    if (!memberIds.includes(user.id)) {
       return NextResponse.json(
         { error: 'You are not a member of this partnership' },
         { status: 403 }
       )
     }
+    
+    // If partnerId was provided, verify they are also a member
+    if (partnerId && !memberIds.includes(partnerId)) {
+      return NextResponse.json(
+        { error: 'Partner is not a member of this partnership' },
+        { status: 403 }
+      )
+    }
+    
+    // Get partner ID from partnership members if not provided
+    const actualPartnerId = partnerId || partnership.members.find((m) => m.userId !== user.id)?.userId
 
     // Group attempts by quiz
     const attemptsByQuiz = new Map<string, typeof partnership.attempts>()
@@ -172,7 +241,7 @@ export async function GET(request: NextRequest) {
       const questionComparisons = quiz.questions.map((question) => {
         const questionAnswers = answersByQuestion.get(question.id) || []
         const userAnswer = questionAnswers.find((a) => a.userId === user.id)
-        const partnerAnswer = questionAnswers.find((a) => a.userId === partnerId)
+        const partnerAnswer = actualPartnerId ? questionAnswers.find((a) => a.userId === actualPartnerId) : null
         
         // Calculate agreement - all members must have answered AND all answers must be identical
         const memberAnswerMap = new Map<string, any>()
@@ -241,7 +310,7 @@ export async function GET(request: NextRequest) {
             username: m.user.username,
           })),
         },
-        partner: partnership.members.find((m) => m.userId === partnerId)?.user || null,
+        partner: actualPartnerId ? partnership.members.find((m) => m.userId === actualPartnerId)?.user || null : null,
         quizzes,
       },
       { status: 200 }
