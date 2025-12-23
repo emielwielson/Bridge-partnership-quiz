@@ -62,7 +62,7 @@ export default function QuestionDisplay({
   }
 
   // Get card style for a bid
-  const getBidCardStyle = (bid: Bid, index: number, totalBids: number): React.CSSProperties => {
+  const getBidCardStyle = (bid: Bid, index: number, totalBids: number, position: string): React.CSSProperties => {
     const baseStyle: React.CSSProperties = {
       backgroundColor: '#fff',
       border: bid.alert ? '2px solid #f90' : '1px solid #333',
@@ -71,26 +71,31 @@ export default function QuestionDisplay({
       position: 'relative',
       zIndex: totalBids - index, // Newer cards on top
       transition: 'all 0.2s ease',
+      display: 'flex',
+      alignItems: 'flex-start',
+      justifyContent: 'flex-start',
+      padding: '0.5rem',
     }
+
+    // For N/S: horizontal cards (wider)
+    // For E/W: vertical cards (taller, rotated)
+    const isHorizontal = position === 'N' || position === 'S'
 
     if (bid.bidType === BidType.CONTRACT && bid.suit) {
       return {
         ...baseStyle,
-        width: '60px',
-        height: '90px',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
+        width: isHorizontal ? '80px' : '60px',
+        height: isHorizontal ? '50px' : '100px',
         color: getSuitColor(bid.suit),
         fontWeight: 'bold',
-        fontSize: '1.2rem',
+        transform: isHorizontal ? 'none' : 'rotate(90deg)',
+        transformOrigin: 'center',
       }
     } else if (bid.bidType === BidType.DOUBLE) {
       return {
         ...baseStyle,
-        width: '45px',
-        height: '70px',
+        width: isHorizontal ? '50px' : '40px',
+        height: isHorizontal ? '50px' : '60px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -98,12 +103,14 @@ export default function QuestionDisplay({
         color: '#fff',
         fontWeight: 'bold',
         fontSize: '1.1rem',
+        transform: isHorizontal ? 'none' : 'rotate(90deg)',
+        transformOrigin: 'center',
       }
     } else if (bid.bidType === BidType.REDOUBLE) {
       return {
         ...baseStyle,
-        width: '45px',
-        height: '70px',
+        width: isHorizontal ? '50px' : '40px',
+        height: isHorizontal ? '50px' : '60px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -111,12 +118,14 @@ export default function QuestionDisplay({
         color: '#fff',
         fontWeight: 'bold',
         fontSize: '0.9rem',
+        transform: isHorizontal ? 'none' : 'rotate(90deg)',
+        transformOrigin: 'center',
       }
     } else if (bid.bidType === BidType.PASS) {
       return {
         ...baseStyle,
-        width: '60px',
-        height: '90px',
+        width: isHorizontal ? '80px' : '60px',
+        height: isHorizontal ? '50px' : '100px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -126,6 +135,8 @@ export default function QuestionDisplay({
         fontSize: '0.85rem',
         textAlign: 'center',
         padding: '0.25rem',
+        transform: isHorizontal ? 'none' : 'rotate(90deg)',
+        transformOrigin: 'center',
       }
     }
 
@@ -298,28 +309,35 @@ export default function QuestionDisplay({
               }
             }
 
+            const isHorizontal = pos === 'N' || pos === 'S'
+            
             return (
               <div
                 key={pos}
                 style={{
                   ...positionStyle,
                   display: 'flex',
-                  flexDirection: pos === 'N' || pos === 'S' ? 'column' : 'row',
+                  flexDirection: isHorizontal ? 'row' : 'column',
                   alignItems: 'center',
-                  justifyContent: 'center',
+                  justifyContent: 'flex-start',
                   gap: '0',
                 }}
               >
                 {positionBids.map((bid, idx) => {
-                  const cardStyle = getBidCardStyle(bid, idx, positionBids.length)
-                  const offset = idx * 3
+                  const cardStyle = getBidCardStyle(bid, idx, positionBids.length, pos)
                   const isLastBid = lastBid && bid.sequence === lastBid.sequence
+                  // Overlap cards so only left edge (with symbol) is visible
+                  // For horizontal: overlap from left (negative left margin)
+                  // For vertical: overlap from top (negative top margin)
+                  const overlap = isHorizontal ? 60 : 50 // Most of card hidden, only left/top edge visible
                   
                   let offsetStyle: React.CSSProperties = {}
-                  if (pos === 'N' || pos === 'S') {
-                    offsetStyle = { marginTop: idx > 0 ? `-${offset}px` : '0' }
+                  if (isHorizontal) {
+                    // N/S: stack horizontally, overlap from left
+                    offsetStyle = { marginLeft: idx > 0 ? `-${overlap}px` : '0' }
                   } else {
-                    offsetStyle = { marginLeft: idx > 0 ? `-${offset}px` : '0' }
+                    // E/W: stack vertically, overlap from top
+                    offsetStyle = { marginTop: idx > 0 ? `-${overlap}px` : '0' }
                   }
 
                   return (
@@ -348,14 +366,12 @@ export default function QuestionDisplay({
                       >
                         {bid.bidType === BidType.CONTRACT && bid.suit && (
                           <>
-                            <div style={{ fontSize: '0.7rem', marginBottom: '0.2rem' }}>
+                            <div style={{ 
+                              fontSize: '1rem', 
+                              fontWeight: 'bold',
+                              lineHeight: '1.2',
+                            }}>
                               {bid.level}{suitSymbols[bid.suit]}
-                            </div>
-                            <div style={{ fontSize: '1.8rem', lineHeight: '1' }}>
-                              {suitSymbols[bid.suit]}
-                            </div>
-                            <div style={{ fontSize: '1.2rem', marginTop: '0.2rem' }}>
-                              {bid.level}
                             </div>
                             {bid.alert && (
                               <div style={{
