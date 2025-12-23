@@ -356,6 +356,14 @@ export async function POST(request: NextRequest) {
           // Check if the current user already has an attempt (they might be continuing)
           const userExistingAttempt = existingAttempts.find((a) => a.userId === user.id)
           if (userExistingAttempt) {
+            // Ensure activeQuizId is set (in case it wasn't set when quiz was started)
+            await db.class.update({
+              where: { id: classId },
+              data: {
+                activeQuizId: quizId,
+              },
+            })
+            
             // User already has an attempt, return it
             const userAttempt = await db.attempt.findUnique({
               where: { id: userExistingAttempt.id },
@@ -424,6 +432,16 @@ export async function POST(request: NextRequest) {
           data: attemptsToCreate,
         })
       }
+
+      // Set the activeQuizId on the class so it shows up in class list/view
+      // This should be set regardless of whether new attempts were created
+      // (in case the quiz was started before but activeQuizId wasn't set)
+      await db.class.update({
+        where: { id: classId },
+        data: {
+          activeQuizId: quizId,
+        },
+      })
 
       // Return success message (teacher doesn't get an attempt)
       return NextResponse.json(

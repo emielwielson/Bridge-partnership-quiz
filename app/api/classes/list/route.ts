@@ -48,22 +48,58 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    // Separate into teacher and student classes
-    const teacherClasses = classMemberships
-      .filter((cm) => cm.role === ClassMemberRole.TEACHER)
-      .map((cm) => ({
-        ...cm.class,
-        role: cm.role,
-        joinedAt: cm.joinedAt,
-      }))
+    // For each class, if activeQuizId is not set, check for IN_PROGRESS attempts to determine active quiz
+    const classesWithActiveQuiz = await Promise.all(
+      classMemberships.map(async (cm) => {
+        let activeQuiz = cm.class.activeQuiz
 
-    const studentClasses = classMemberships
-      .filter((cm) => cm.role === ClassMemberRole.STUDENT)
-      .map((cm) => ({
-        ...cm.class,
-        role: cm.role,
-        joinedAt: cm.joinedAt,
-      }))
+        // If activeQuizId is not set, check for IN_PROGRESS attempts
+        if (!activeQuiz && !cm.class.activeQuizId) {
+          const inProgressAttempt = await db.attempt.findFirst({
+            where: {
+              classId: cm.class.id,
+              status: 'IN_PROGRESS',
+            },
+            include: {
+              quiz: {
+                select: {
+                  id: true,
+                  title: true,
+                },
+              },
+            },
+            orderBy: {
+              startedAt: 'desc',
+            },
+          })
+
+          if (inProgressAttempt) {
+            activeQuiz = inProgressAttempt.quiz
+            // Optionally update the class to set activeQuizId for future queries
+            await db.class.update({
+              where: { id: cm.class.id },
+              data: {
+                activeQuizId: inProgressAttempt.quiz.id,
+              },
+            })
+          }
+        }
+
+        return {
+          ...cm.class,
+          activeQuiz,
+          role: cm.role,
+          joinedAt: cm.joinedAt,
+        }
+      })
+    )
+
+    // Separate into teacher and student classes
+    const teacherClasses = classesWithActiveQuiz
+      .filter((c) => c.role === ClassMemberRole.TEACHER)
+
+    const studentClasses = classesWithActiveQuiz
+      .filter((c) => c.role === ClassMemberRole.STUDENT)
 
     return NextResponse.json(
       {
