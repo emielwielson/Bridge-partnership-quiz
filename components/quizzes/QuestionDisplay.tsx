@@ -355,7 +355,7 @@ export default function QuestionDisplay({
                   } else if (pos === 'S') {
                     // South: stack right to left, second card further left than first
                     // Use same settings as North for consistent overlap
-                    cardOffsetStyle = { marginRight: idx > 0 ? `${cardHeight - overlap - 38}px` : '0' }
+                    cardOffsetStyle = { marginRight: idx > 0 ? `${cardWidth - overlap - 72}px` : '0' }
                   } else if (pos === 'W') {
                     // West: stack bottom to top, second card higher than first
                     // With column-reverse direction, cards flow up naturally
