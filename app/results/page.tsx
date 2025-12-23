@@ -20,11 +20,14 @@ interface QuizResult {
   quizId: string
   quizTitle: string
   quizTopic: string
-  partnershipId: string
-  partnershipName: string
+  partnershipId?: string
+  partnershipName?: string
+  classId?: string
+  className?: string
   completedAt: string
-  overallScore: number
+  overallScore?: number // Optional for class results
   attemptId?: string
+  isClassResult?: boolean
 }
 
 interface QuestionDetail {
@@ -80,7 +83,7 @@ export default function ResultsPage() {
   }, [searchParams])
 
   const fetchAllResults = useCallback(async () => {
-    if (!currentUserId || partnerships.length === 0) {
+    if (!currentUserId) {
       setLoadingResults(false)
       return
     }
@@ -117,7 +120,8 @@ export default function ResultsPage() {
                     partnershipName: partnership.members.map((m) => m.user.username).join(' - '),
                     completedAt: attempt.completedAt || attempt.startedAt,
                     overallScore: attempt.overallScore,
-                    attemptId: attempt.attemptId, // Include attemptId to distinguish between attempts
+                    attemptId: attempt.attemptId,
+                    isClassResult: false,
                   })
                 })
               })
@@ -126,6 +130,47 @@ export default function ResultsPage() {
         } catch (err) {
           console.error(`Failed to fetch results for partnership ${partnership.id}:`, err)
         }
+      }
+
+      // Fetch results for classes
+      try {
+        const classesResponse = await fetch('/api/classes/list')
+        if (classesResponse.ok) {
+          const classesData = await classesResponse.json()
+          const allClasses = [...(classesData.teacherClasses || []), ...(classesData.studentClasses || [])]
+          
+          for (const cls of allClasses) {
+            try {
+              const response = await fetch(`/api/results/player-class?classId=${cls.id}`)
+              if (response.ok) {
+                const data = await response.json()
+                if (data.quizzes && data.quizzes.length > 0) {
+                  data.quizzes.forEach((quiz: any) => {
+                    // Include all quizzes that have been started (even if not all students completed)
+                    if (quiz.completedAt) {
+                      results.push({
+                        quizId: quiz.quizId,
+                        quizTitle: quiz.quizTitle,
+                        quizTopic: quiz.quizTopic,
+                        classId: cls.id,
+                        className: cls.name,
+                        completedAt: quiz.completedAt,
+                        attemptId: quiz.quizId, // Use quizId as identifier for class results
+                        isClassResult: true,
+                        studentsCompleted: quiz.studentsCompleted || 0,
+                        totalStudents: quiz.totalStudents || 0,
+                      })
+                    }
+                  })
+                }
+              }
+            } catch (err) {
+              console.error(`Failed to fetch results for class ${cls.id}:`, err)
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch classes:', err)
       }
 
       // Sort all results by completedAt date (most recent first)
@@ -201,13 +246,75 @@ export default function ResultsPage() {
     }
   }
 
-  const handleQuizClick = (quizId: string, partnershipId: string, attemptId?: string) => {
+  const handleQuizClick = (quizId: string, partnershipId?: string, classId?: string, attemptId?: string, isClassResult?: boolean) => {
+    if (isClassResult && classId) {
+      // For class results, fetch class quiz details
+      const key = `${quizId}-${classId}`
+      if (expandedQuizId === key) {
+        setExpandedQuizId(null)
+      } else {
+        setExpandedQuizId(key)
+        fetchClassQuizDetails(quizId, classId)
+      }
+      return
+    }
+    
+    if (!partnershipId) return
+    
     const key = attemptId ? `${quizId}-${partnershipId}-${attemptId}` : `${quizId}-${partnershipId}`
     if (expandedQuizId === key) {
       setExpandedQuizId(null)
     } else {
       setExpandedQuizId(key)
       fetchQuizDetails(quizId, partnershipId, attemptId)
+    }
+  }
+
+  const fetchClassQuizDetails = async (quizId: string, classId: string) => {
+    const detailKey = `${quizId}-${classId}`
+    if (quizDetails.has(detailKey) || loadingDetails.has(detailKey)) {
+      return
+    }
+
+    try {
+      loadingDetails.add(detailKey)
+      setLoadingDetails(new Set(loadingDetails))
+
+      const response = await fetch(`/api/results/player-class?classId=${classId}`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch class quiz details')
+      }
+
+      const data = await response.json()
+      // Find the specific quiz in the results
+      const quiz = data.quizzes?.find((q: any) => q.quizId === quizId)
+      if (quiz) {
+        setQuizDetails(new Map(quizDetails.set(detailKey, {
+          quiz: {
+            id: quiz.quizId,
+            title: quiz.quizTitle,
+            topic: quiz.quizTopic,
+          },
+          partnership: null,
+          completedAt: quiz.completedAt,
+          questions: quiz.questions.map((q: any, idx: number) => ({
+            questionId: q.questionId,
+            order: idx,
+            prompt: q.prompt,
+            answerType: q.answerType,
+            auction: q.auction,
+            answerDistribution: q.answerDistribution || [],
+            totalAnswers: q.totalAnswers || 0,
+          })),
+          studentsCompleted: quiz.studentsCompleted || 0,
+          totalStudents: quiz.totalStudents || 0,
+        })))
+      }
+    } catch (err) {
+      console.error('Failed to fetch class quiz details:', err)
+    } finally {
+      loadingDetails.delete(detailKey)
+      setLoadingDetails(new Set(loadingDetails))
     }
   }
 
@@ -295,7 +402,9 @@ export default function ResultsPage() {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {getFilteredResults().map((result, idx) => {
-            const detailKey = result.attemptId
+            const detailKey = result.isClassResult
+              ? `${result.quizId}-${result.classId}`
+              : result.attemptId
               ? `${result.quizId}-${result.partnershipId}-${result.attemptId}`
               : `${result.quizId}-${result.partnershipId}`
             const isExpanded = expandedQuizId === detailKey
@@ -304,7 +413,7 @@ export default function ResultsPage() {
 
             return (
               <div
-                key={`${result.partnershipId}-${result.quizId}-${idx}`}
+                key={result.isClassResult ? `${result.classId}-${result.quizId}-${idx}` : `${result.partnershipId}-${result.quizId}-${idx}`}
                 style={{
                   border: '1px solid #ddd',
                   borderRadius: '8px',
@@ -321,7 +430,7 @@ export default function ResultsPage() {
                     cursor: 'pointer',
                     backgroundColor: isExpanded ? '#f5f5f5' : '#fff',
                   }}
-                  onClick={() => handleQuizClick(result.quizId, result.partnershipId, result.attemptId)}
+                  onClick={() => handleQuizClick(result.quizId, result.partnershipId, result.classId, result.attemptId, result.isClassResult)}
                 >
                   <div style={{ flex: 1 }}>
                     <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>
@@ -329,22 +438,44 @@ export default function ResultsPage() {
                     </h3>
                     <div style={{ fontSize: '0.9rem', color: '#666' }}>
                       <div style={{ marginBottom: '0.25rem' }}>
-                        <strong>Partnership:</strong> {result.partnershipName}
+                        <strong>{result.isClassResult ? 'Class' : 'Partnership'}:</strong>{' '}
+                        {result.isClassResult ? result.className : result.partnershipName}
                       </div>
                       <div>
                         <strong>Completed:</strong> {new Date(result.completedAt).toLocaleDateString()} {new Date(result.completedAt).toLocaleTimeString()}
                       </div>
+                      {result.isClassResult && result.totalStudents !== undefined && (
+                        <div style={{ marginTop: '0.5rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <div style={{ fontSize: '0.85rem', color: '#666', minWidth: '60px' }}>
+                              Progress: {result.studentsCompleted || 0}/{result.totalStudents}
+                            </div>
+                            <div style={{ flex: 1, height: '8px', backgroundColor: '#e0e0e0', borderRadius: '4px', overflow: 'hidden', maxWidth: '200px' }}>
+                              <div
+                                style={{
+                                  height: '100%',
+                                  backgroundColor: '#0070f3',
+                                  width: `${result.totalStudents > 0 ? ((result.studentsCompleted || 0) / result.totalStudents) * 100 : 0}%`,
+                                  transition: 'width 0.3s ease',
+                                }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div style={{ textAlign: 'right', marginLeft: '2rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <div>
-                      <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#0070f3' }}>
-                        {result.overallScore}%
+                    {!result.isClassResult && result.overallScore !== undefined && (
+                      <div>
+                        <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#0070f3' }}>
+                          {result.overallScore}%
+                        </div>
+                        <div style={{ fontSize: '0.9rem', color: '#666', marginTop: '0.25rem' }}>
+                          agreed
+                        </div>
                       </div>
-                      <div style={{ fontSize: '0.9rem', color: '#666', marginTop: '0.25rem' }}>
-                        agreed
-                      </div>
-                    </div>
+                    )}
                     <div style={{ fontSize: '1.5rem', color: '#666' }}>
                       {isExpanded ? '▼' : '▶'}
                     </div>
@@ -364,39 +495,74 @@ export default function ResultsPage() {
                               padding: '1.5rem',
                               border: '1px solid #e0e0e0',
                               borderRadius: '8px',
-                              backgroundColor: question.agreed ? '#f0f9ff' : '#fff5f5',
+                              backgroundColor: '#fff',
                             }}
                           >
                             <div style={{ marginBottom: '1rem' }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                                <h4 style={{ fontSize: '1.1rem', margin: 0 }}>
-                                  Question {question.order + 1}
-                                </h4>
-                                <div
-                                  style={{
-                                    padding: '0.25rem 0.75rem',
-                                    borderRadius: '4px',
-                                    backgroundColor: question.agreed ? '#d4edda' : '#f8d7da',
-                                    color: question.agreed ? '#155724' : '#721c24',
-                                    fontSize: '0.9rem',
-                                    fontWeight: '500',
-                                  }}
-                                >
-                                  {question.agreed ? '✓ Agreed' : '✗ Disagreed'}
-                                </div>
-                              </div>
+                              <h4 style={{ fontSize: '1.1rem', margin: 0, marginBottom: '0.5rem' }}>
+                                Question {question.order + 1}
+                              </h4>
+                              {question.prompt && (
+                                <p style={{ color: '#666', marginBottom: '1rem' }}>{question.prompt}</p>
+                              )}
                             </div>
 
                             {question.auction && (
                               <div style={{ marginBottom: '1rem' }}>
                                 <QuestionDisplay
                                   auction={question.auction}
-                                  prompt={question.prompt}
+                                  prompt=""
                                   questionOrder={question.order}
                                   totalQuestions={detail.questions.length}
                                 />
                               </div>
                             )}
+
+                            {result.isClassResult && question.answerDistribution && Array.isArray(question.answerDistribution) && question.answerDistribution.length > 0 ? (
+                              <div>
+                                {question.totalAnswers === 0 ? (
+                                  <div style={{ padding: '1rem', backgroundColor: '#f9f9f9', borderRadius: '4px', color: '#666' }}>
+                                    No students have answered this question yet.
+                                  </div>
+                                ) : (
+                                  <div>
+                                    <div style={{ marginBottom: '0.75rem', fontSize: '0.9rem', color: '#666' }}>
+                                      {question.totalAnswers} answer{question.totalAnswers !== 1 ? 's' : ''} received
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                      {question.answerDistribution.map((dist: any, distIdx: number) => (
+                                        <div
+                                          key={distIdx}
+                                          style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            padding: '0.75rem',
+                                            backgroundColor: '#f9f9f9',
+                                            borderRadius: '4px',
+                                            border: '1px solid #e0e0e0',
+                                          }}
+                                        >
+                                          <div style={{ flex: 1 }}>
+                                            <div style={{ fontWeight: '500', marginBottom: '0.25rem' }}>
+                                              {formatAnswer(dist.answer, question.answerType)}
+                                            </div>
+                                            <div style={{ fontSize: '0.85rem', color: '#666' }}>
+                                              {dist.count} student{dist.count !== 1 ? 's' : ''}
+                                            </div>
+                                          </div>
+                                          <div style={{ minWidth: '80px', textAlign: 'right' }}>
+                                            <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#0070f3' }}>
+                                              {dist.percentage}%
+                                            </div>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            ) : !result.isClassResult && (
+                              <>
 
                             <div style={{ marginTop: '1rem' }}>
                               <strong style={{ fontSize: '0.95rem', marginBottom: '0.5rem', display: 'block' }}>
@@ -423,6 +589,8 @@ export default function ResultsPage() {
                                 ))}
                               </div>
                             </div>
+                            </>
+                            )}
                           </div>
                         ))}
                       </div>
