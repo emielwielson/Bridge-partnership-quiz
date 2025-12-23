@@ -41,7 +41,8 @@ export default function LoginForm() {
       }
 
       // Login successful, redirect to active quizzes
-      router.push('/quizzes/active')
+      // Use window.location to ensure full page reload and session cookie is available
+      window.location.href = '/quizzes/active'
     } catch (err) {
       setError('An unexpected error occurred')
       setLoading(false)
