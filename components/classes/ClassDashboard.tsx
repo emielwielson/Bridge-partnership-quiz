@@ -93,10 +93,16 @@ export default function ClassDashboard() {
       }
       const data = await response.json()
       
+      // Get the current active quiz ID to exclude it from completed list
+      const activeQuizId = classData?.activeQuiz?.id
+      
       // Filter to only show completed quizzes (where all students have completed)
-      const completed = (data.quizzes || []).filter((quiz: any) => 
-        quiz.completedAt && quiz.studentsCompleted === quiz.totalStudents
-      )
+      // Also exclude the currently active quiz (if any) to avoid duplicates
+      const completed = (data.quizzes || []).filter((quiz: any) => {
+        const isFullyCompleted = quiz.completedAt && quiz.studentsCompleted === quiz.totalStudents
+        const isNotActive = quiz.quizId !== activeQuizId
+        return isFullyCompleted && isNotActive
+      })
       
       // Sort by completedAt date (most recent first)
       completed.sort((a: CompletedQuiz, b: CompletedQuiz) => {
@@ -111,7 +117,7 @@ export default function ClassDashboard() {
     } finally {
       setLoadingCompleted(false)
     }
-  }, [classId])
+  }, [classId, classData?.activeQuiz?.id])
 
   const copyClassCode = async () => {
     if (classData?.classLink) {
