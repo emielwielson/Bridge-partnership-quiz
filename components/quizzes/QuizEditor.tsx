@@ -317,7 +317,7 @@ export default function QuizEditor() {
                 Take Quiz
               </Link>
             )}
-            {isCreator && (
+            {isCreator && quiz.state === 'PUBLISHED' && (
               <Link
                 href={`/quizzes/${quizId}/results`}
                 style={{
