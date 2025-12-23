@@ -65,36 +65,6 @@ export default function Navigation() {
             Bridge Quiz
           </Link>
           <Link
-            href="/partnerships"
-            style={{
-              color: pathname?.startsWith('/partnerships') ? '#0070f3' : '#666',
-              textDecoration: 'none',
-              fontWeight: pathname?.startsWith('/partnerships') ? '500' : 'normal',
-            }}
-          >
-            Partnerships
-          </Link>
-          <Link
-            href="/classes"
-            style={{
-              color: pathname?.startsWith('/classes') ? '#0070f3' : '#666',
-              textDecoration: 'none',
-              fontWeight: pathname?.startsWith('/classes') ? '500' : 'normal',
-            }}
-          >
-            Classes
-          </Link>
-          <Link
-            href="/quizzes"
-            style={{
-              color: pathname?.startsWith('/quizzes') ? '#0070f3' : '#666',
-              textDecoration: 'none',
-              fontWeight: pathname?.startsWith('/quizzes') ? '500' : 'normal',
-            }}
-          >
-            Quizzes
-          </Link>
-          <Link
             href="/quizzes/active"
             style={{
               color: pathname?.startsWith('/quizzes/active') ? '#0070f3' : '#666',
@@ -115,14 +85,34 @@ export default function Navigation() {
             Results
           </Link>
           <Link
-            href="/player"
+            href="/quizzes"
             style={{
-              color: pathname?.startsWith('/player') ? '#0070f3' : '#666',
+              color: pathname?.startsWith('/quizzes') && !pathname?.startsWith('/quizzes/active') ? '#0070f3' : '#666',
               textDecoration: 'none',
-              fontWeight: pathname?.startsWith('/player') ? '500' : 'normal',
+              fontWeight: pathname?.startsWith('/quizzes') && !pathname?.startsWith('/quizzes/active') ? '500' : 'normal',
             }}
           >
-            Player
+            Quizzes
+          </Link>
+          <Link
+            href="/partnerships"
+            style={{
+              color: pathname?.startsWith('/partnerships') ? '#0070f3' : '#666',
+              textDecoration: 'none',
+              fontWeight: pathname?.startsWith('/partnerships') ? '500' : 'normal',
+            }}
+          >
+            Partnerships
+          </Link>
+          <Link
+            href="/classes"
+            style={{
+              color: pathname?.startsWith('/classes') ? '#0070f3' : '#666',
+              textDecoration: 'none',
+              fontWeight: pathname?.startsWith('/classes') ? '500' : 'normal',
+            }}
+          >
+            Classes
           </Link>
         </div>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>

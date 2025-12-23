@@ -40,8 +40,8 @@ export default function LoginForm() {
         return
       }
 
-      // Login successful, redirect to player dashboard
-      router.push('/player')
+      // Login successful, redirect to active quizzes
+      router.push('/quizzes/active')
     } catch (err) {
       setError('An unexpected error occurred')
       setLoading(false)
