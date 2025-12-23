@@ -35,6 +35,7 @@ export default function ClassDashboard() {
   const [editingName, setEditingName] = useState(false)
   const [newName, setNewName] = useState('')
   const [removingMember, setRemovingMember] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
 
   const fetchClassData = useCallback(async () => {
     try {
@@ -69,10 +70,30 @@ export default function ClassDashboard() {
     }
   }, [classId, fetchClassData])
 
-  const copyClassCode = () => {
+  const copyClassCode = async () => {
     if (classData?.classLink) {
-      navigator.clipboard.writeText(classData.classLink)
-      alert('Class code copied to clipboard!')
+      try {
+        await navigator.clipboard.writeText(classData.classLink)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      } catch (err) {
+        console.error('Failed to copy:', err)
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea')
+        textArea.value = classData.classLink
+        textArea.style.position = 'fixed'
+        textArea.style.opacity = '0'
+        document.body.appendChild(textArea)
+        textArea.select()
+        try {
+          document.execCommand('copy')
+          setCopied(true)
+          setTimeout(() => setCopied(false), 2000)
+        } catch (fallbackErr) {
+          console.error('Fallback copy failed:', fallbackErr)
+        }
+        document.body.removeChild(textArea)
+      }
     }
   }
 
@@ -253,16 +274,18 @@ export default function ClassDashboard() {
               onClick={copyClassCode}
               style={{
                 padding: '0.5rem 1rem',
-                backgroundColor: '#0070f3',
+                backgroundColor: copied ? '#28a745' : '#0070f3',
                 color: 'white',
                 border: 'none',
                 borderRadius: '6px',
                 cursor: 'pointer',
                 fontSize: '0.9rem',
                 whiteSpace: 'nowrap',
+                fontWeight: '500',
+                transition: 'background-color 0.2s',
               }}
             >
-              Copy Code
+              {copied ? '✓ Copied!' : 'Copy Code'}
             </button>
           </div>
         </div>
