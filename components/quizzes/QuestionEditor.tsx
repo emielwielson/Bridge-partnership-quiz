@@ -275,9 +275,18 @@ export default function QuestionEditor() {
 
   // Check if double is available
   const isDoubleAvailable = useMemo(() => {
+    // Cannot double if there are no bids
+    if (bids.length === 0) return false
+    
+    // Cannot double after a redouble
+    const lastBid = bids[bids.length - 1]
+    if (lastBid.bidType === BidType.REDOUBLE) return false
+    
+    // Need a contract bid to double
     const lastContractBid = getLastContractBid()
     if (!lastContractBid) return false
     
+    // Can only double opponent's contract bid
     const currentPosition = getNextPosition(bids.length)
     return isOpponent(currentPosition, lastContractBid.position)
   }, [bids, getLastContractBid, getNextPosition, isOpponent])
