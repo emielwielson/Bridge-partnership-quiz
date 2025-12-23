@@ -1,11 +1,12 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
 export default function PartnershipResultsPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [partners, setPartners] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -13,32 +14,51 @@ export default function PartnershipResultsPage() {
   const [results, setResults] = useState<any>(null)
 
   useEffect(() => {
+    // Check if partnershipId or partnerId is provided in URL query params
+    const partnershipIdFromUrl = searchParams.get('partnershipId')
+    const partnerIdFromUrl = searchParams.get('partnerId')
+    
+    if (partnerIdFromUrl) {
+      setSelectedPartnerId(partnerIdFromUrl)
+    }
+    // If partnershipId is provided, fetchResults will handle it
     fetchPartners()
-  }, [])
+  }, [searchParams])
 
   const fetchResults = useCallback(async () => {
     if (!selectedPartnerId) return
     
     try {
       setLoading(true)
-      const response = await fetch(`/api/results/player-partnership?partnerId=${selectedPartnerId}`)
+      // Try to get partnershipId from URL first, otherwise use partnerId
+      const partnershipIdFromUrl = searchParams.get('partnershipId')
+      const url = partnershipIdFromUrl 
+        ? `/api/results/player-partnership?partnershipId=${partnershipIdFromUrl}`
+        : `/api/results/player-partnership?partnerId=${selectedPartnerId}`
+      
+      const response = await fetch(url)
       if (!response.ok) {
         throw new Error('Failed to fetch results')
       }
       const data = await response.json()
       setResults(data)
+      // If we used partnershipId, set the selectedPartnerId from the response
+      if (partnershipIdFromUrl && data.partner) {
+        setSelectedPartnerId(data.partner.id)
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load results')
     } finally {
       setLoading(false)
     }
-  }, [selectedPartnerId])
+  }, [selectedPartnerId, searchParams])
 
   useEffect(() => {
-    if (selectedPartnerId) {
+    const partnershipIdFromUrl = searchParams.get('partnershipId')
+    if (partnershipIdFromUrl || selectedPartnerId) {
       fetchResults()
     }
-  }, [selectedPartnerId, fetchResults])
+  }, [selectedPartnerId, searchParams, fetchResults])
 
   const fetchPartners = async () => {
     try {
@@ -72,47 +92,19 @@ export default function PartnershipResultsPage() {
   }
 
 
-  if (loading && !selectedPartnerId) {
-    return <div>Loading partners...</div>
+  // If partnershipId is in URL, we're loading results directly - don't show partner selection
+  const partnershipIdFromUrl = searchParams.get('partnershipId')
+  
+  if (!partnershipIdFromUrl && !selectedPartnerId) {
+    // Redirect to main results page if no partner/partnership specified
+    if (!loading) {
+      router.push('/results')
+      return <div>Redirecting...</div>
+    }
+    return <div>Loading...</div>
   }
 
-  if (!selectedPartnerId) {
-    return (
-      <div style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem' }}>
-        <Link
-          href="/results"
-          style={{ color: '#0070f3', textDecoration: 'none', marginBottom: '1rem', display: 'inline-block' }}
-        >
-          ← Back to Results
-        </Link>
-        <h1 style={{ fontSize: '2rem', marginBottom: '2rem' }}>Select a Partner</h1>
-        {partners.length === 0 ? (
-          <p>You don&apos;t have any partnerships yet.</p>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            {partners.map((partner) => (
-              <button
-                key={partner.id}
-                onClick={() => setSelectedPartnerId(partner.id)}
-                style={{
-                  padding: '1rem',
-                  textAlign: 'left',
-                  backgroundColor: '#fff',
-                  border: '1px solid #ddd',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                }}
-              >
-                {partner.username}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-    )
-  }
-
-  if (!results) {
+  if (!results && (partnershipIdFromUrl || selectedPartnerId)) {
     return <div>Loading results...</div>
   }
 

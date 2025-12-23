@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const quizId = searchParams.get('quizId')
     const partnershipId = searchParams.get('partnershipId')
+    const attemptId = searchParams.get('attemptId') // Optional: specific attempt to show
 
     if (!quizId || !partnershipId) {
       return NextResponse.json(
@@ -52,16 +53,40 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Get ALL completed attempts for this quiz and partnership (one per member)
-    const attempts = await db.attempt.findMany({
-      where: {
-        quizId,
-        partnershipId,
-        userId: {
-          in: memberIds,
+    // If attemptId is provided, find all attempts from the same attempt set
+    // (attempts created at the same time for the same quiz/partnership)
+    let attempts
+    if (attemptId) {
+      // Get the reference attempt to find its startedAt time
+      const referenceAttempt = await db.attempt.findUnique({
+        where: { id: attemptId },
+        select: { startedAt: true },
+      })
+
+      if (!referenceAttempt) {
+        return NextResponse.json(
+          { error: 'Attempt not found' },
+          { status: 404 }
+        )
+      }
+
+      // Find all attempts from the same attempt set (same startedAt, within 1 second)
+      const startedAtStart = new Date(referenceAttempt.startedAt.getTime() - 1000)
+      const startedAtEnd = new Date(referenceAttempt.startedAt.getTime() + 1000)
+
+      attempts = await db.attempt.findMany({
+        where: {
+          quizId,
+          partnershipId,
+          userId: {
+            in: memberIds,
+          },
+          status: 'COMPLETED',
+          startedAt: {
+            gte: startedAtStart,
+            lte: startedAtEnd,
+          },
         },
-        status: 'COMPLETED',
-      },
       include: {
         quiz: {
           include: {
@@ -97,10 +122,78 @@ export async function GET(request: NextRequest) {
           },
         },
       },
-      orderBy: {
-        completedAt: 'desc',
-      },
-    })
+        orderBy: {
+          completedAt: 'desc',
+        },
+      })
+    } else {
+      // Fallback: Get the most recent completed attempts (old behavior)
+      attempts = await db.attempt.findMany({
+        where: {
+          quizId,
+          partnershipId,
+          userId: {
+            in: memberIds,
+          },
+          status: 'COMPLETED',
+        },
+        include: {
+          quiz: {
+            include: {
+              questions: {
+                orderBy: {
+                  order: 'asc',
+                },
+                include: {
+                  auction: {
+                    include: {
+                      bids: {
+                        orderBy: {
+                          sequence: 'asc',
+                        },
+                        include: {
+                          alert: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          answers: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  username: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: {
+          completedAt: 'desc',
+        },
+      })
+
+      // Group by startedAt to get the most recent attempt set
+      const attemptsByStartedAt = new Map<string, typeof attempts>()
+      attempts.forEach((attempt) => {
+        const key = attempt.startedAt.toISOString()
+        const existing = attemptsByStartedAt.get(key) || []
+        existing.push(attempt)
+        attemptsByStartedAt.set(key, existing)
+      })
+
+      // Get the most recent attempt set
+      const sortedKeys = Array.from(attemptsByStartedAt.keys()).sort().reverse()
+      if (sortedKeys.length > 0) {
+        attempts = attemptsByStartedAt.get(sortedKeys[0]) || []
+      } else {
+        attempts = []
+      }
+    }
 
     if (attempts.length === 0) {
       return NextResponse.json(

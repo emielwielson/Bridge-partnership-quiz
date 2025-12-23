@@ -255,7 +255,7 @@ export async function POST(request: NextRequest) {
       if (partnership) {
         const memberIds = partnership.members.map((m) => m.userId)
         
-        // Get all attempts for this partnership and quiz
+        // Get all IN_PROGRESS attempts for this partnership and quiz (exclude completed attempts)
         const allAttempts = await db.attempt.findMany({
           where: {
             partnershipId: attempt.partnershipId,
@@ -263,6 +263,7 @@ export async function POST(request: NextRequest) {
             userId: {
               in: memberIds,
             },
+            status: AttemptStatus.IN_PROGRESS, // Only check current attempts, not old completed ones
           },
           select: {
             id: true,

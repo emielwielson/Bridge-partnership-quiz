@@ -168,26 +168,23 @@ export default function QuizPlayer({ attemptId }: QuizPlayerProps) {
         setAnswers(newAnswers)
       }
       
-      // Check if the attempt is completed (all partnership members finished)
-      // If completed, go to results; otherwise, go to active quizzes
+      // Check if all partnership members have completed
+      // If you're the last one to finish, go to results; otherwise, go to active quizzes
       try {
-        const response = await fetch(`/api/attempts/get?id=${attemptId}`)
+        const response = await fetch(`/api/attempts/check-completion?attemptId=${attemptId}`)
         if (response.ok) {
           const data = await response.json()
-          const attempt = data.attempt
           
-          // Check if attempt is completed
-          const isCompleted = attempt.status === 'COMPLETED' || attempt.completedAt !== null
-          
-          if (isCompleted) {
-            // All members have completed - go to results
-            if (partnerId) {
-              router.push(`/results/partnership?partnerId=${partnerId}`)
+          if (data.isLastToFinish) {
+            // You're the last one to finish - go to results
+            if (partnershipId) {
+              // Navigate to results page with partnership filter
+              router.push(`/results?partnershipId=${partnershipId}`)
             } else {
               router.push('/results')
             }
           } else {
-            // Not all members have completed yet - go to active quizzes
+            // Not the last one to finish - go to active quizzes
             router.push('/quizzes/active')
           }
         } else {

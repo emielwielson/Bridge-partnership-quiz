@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import QuestionDisplay from '@/components/quizzes/QuestionDisplay'
 import { AnswerType } from '@prisma/client'
@@ -23,6 +24,7 @@ interface QuizResult {
   partnershipName: string
   completedAt: string
   overallScore: number
+  attemptId?: string
 }
 
 interface QuestionDetail {
@@ -57,6 +59,7 @@ interface QuizDetail {
 }
 
 export default function ResultsPage() {
+  const searchParams = useSearchParams()
   const [partnerships, setPartnerships] = useState<Partnership[]>([])
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [selectedPartnershipId, setSelectedPartnershipId] = useState<string | null>(null)
@@ -68,8 +71,13 @@ export default function ResultsPage() {
   const [loadingDetails, setLoadingDetails] = useState<Set<string>>(new Set())
 
   useEffect(() => {
+    // Check if partnershipId is provided in URL query params
+    const partnershipIdFromUrl = searchParams.get('partnershipId')
+    if (partnershipIdFromUrl) {
+      setSelectedPartnershipId(partnershipIdFromUrl)
+    }
     fetchPartnerships()
-  }, [])
+  }, [searchParams])
 
   const fetchAllResults = useCallback(async () => {
     if (!currentUserId || partnerships.length === 0) {
@@ -89,7 +97,7 @@ export default function ResultsPage() {
             const data = await response.json()
             if (data.quizzes) {
               data.quizzes.forEach((quiz: any) => {
-                // Get the most recent completed attempt for this quiz
+                // Show all completed attempts for this quiz
                 // Status is returned as a string from the API ('COMPLETED' or 'IN_PROGRESS')
                 // Also check for completedAt timestamp as a fallback
                 const completedAttempts = quiz.attempts.filter((a: any) => {
@@ -99,27 +107,19 @@ export default function ResultsPage() {
                   return status === 'COMPLETED' || (a.completedAt !== null && a.completedAt !== undefined)
                 })
                 
-                if (completedAttempts.length > 0) {
-                  // Sort by completedAt date, most recent first
-                  completedAttempts.sort((a: any, b: any) => {
-                    const dateA = a.completedAt ? new Date(a.completedAt).getTime() : 0
-                    const dateB = b.completedAt ? new Date(b.completedAt).getTime() : 0
-                    return dateB - dateA
-                  })
-                  
-                  // Use the most recent completed attempt
-                  const mostRecentAttempt = completedAttempts[0]
-                  
+                // Add each completed attempt as a separate result entry
+                completedAttempts.forEach((attempt: any) => {
                   results.push({
                     quizId: quiz.quizId,
                     quizTitle: quiz.quizTitle,
                     quizTopic: quiz.quizTopic,
                     partnershipId: partnership.id,
                     partnershipName: partnership.members.map((m) => m.user.username).join(' - '),
-                    completedAt: mostRecentAttempt.completedAt || mostRecentAttempt.startedAt,
-                    overallScore: mostRecentAttempt.overallScore,
+                    completedAt: attempt.completedAt || attempt.startedAt,
+                    overallScore: attempt.overallScore,
+                    attemptId: attempt.attemptId, // Include attemptId to distinguish between attempts
                   })
-                }
+                })
               })
             }
           }
@@ -173,38 +173,41 @@ export default function ResultsPage() {
     return allResults
   }
 
-  const fetchQuizDetails = async (quizId: string, partnershipId: string) => {
-    if (quizDetails.has(`${quizId}-${partnershipId}`) || loadingDetails.has(`${quizId}-${partnershipId}`)) {
+  const fetchQuizDetails = async (quizId: string, partnershipId: string, attemptId?: string) => {
+    const detailKey = attemptId ? `${quizId}-${partnershipId}-${attemptId}` : `${quizId}-${partnershipId}`
+    if (quizDetails.has(detailKey) || loadingDetails.has(detailKey)) {
       return
     }
 
     try {
-      loadingDetails.add(`${quizId}-${partnershipId}`)
+      loadingDetails.add(detailKey)
       setLoadingDetails(new Set(loadingDetails))
 
-      const response = await fetch(`/api/results/quiz-detail?quizId=${quizId}&partnershipId=${partnershipId}`)
+      const url = attemptId
+        ? `/api/results/quiz-detail?quizId=${quizId}&partnershipId=${partnershipId}&attemptId=${attemptId}`
+        : `/api/results/quiz-detail?quizId=${quizId}&partnershipId=${partnershipId}`
+      const response = await fetch(url)
       if (!response.ok) {
         throw new Error('Failed to fetch quiz details')
       }
 
       const data = await response.json()
-      const key = `${quizId}-${partnershipId}`
-      setQuizDetails(new Map(quizDetails.set(key, data)))
+      setQuizDetails(new Map(quizDetails.set(detailKey, data)))
     } catch (err) {
       console.error('Failed to fetch quiz details:', err)
     } finally {
-      loadingDetails.delete(`${quizId}-${partnershipId}`)
+      loadingDetails.delete(detailKey)
       setLoadingDetails(new Set(loadingDetails))
     }
   }
 
-  const handleQuizClick = (quizId: string, partnershipId: string) => {
-    const key = `${quizId}-${partnershipId}`
+  const handleQuizClick = (quizId: string, partnershipId: string, attemptId?: string) => {
+    const key = attemptId ? `${quizId}-${partnershipId}-${attemptId}` : `${quizId}-${partnershipId}`
     if (expandedQuizId === key) {
       setExpandedQuizId(null)
     } else {
       setExpandedQuizId(key)
-      fetchQuizDetails(quizId, partnershipId)
+      fetchQuizDetails(quizId, partnershipId, attemptId)
     }
   }
 
@@ -278,23 +281,6 @@ export default function ResultsPage() {
         </select>
       </div>
 
-      {/* Class Results Link */}
-      <div style={{ marginBottom: '2rem' }}>
-        <Link
-          href="/results/class"
-          style={{
-            padding: '0.75rem 1.5rem',
-            backgroundColor: '#28a745',
-            color: 'white',
-            borderRadius: '8px',
-            textDecoration: 'none',
-            display: 'inline-block',
-          }}
-        >
-          View Class Results
-        </Link>
-      </div>
-
       {loadingResults ? (
         <div>Loading results...</div>
       ) : getFilteredResults().length === 0 ? (
@@ -309,7 +295,9 @@ export default function ResultsPage() {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {getFilteredResults().map((result, idx) => {
-            const detailKey = `${result.quizId}-${result.partnershipId}`
+            const detailKey = result.attemptId
+              ? `${result.quizId}-${result.partnershipId}-${result.attemptId}`
+              : `${result.quizId}-${result.partnershipId}`
             const isExpanded = expandedQuizId === detailKey
             const detail = quizDetails.get(detailKey)
             const isLoadingDetail = loadingDetails.has(detailKey)
@@ -333,7 +321,7 @@ export default function ResultsPage() {
                     cursor: 'pointer',
                     backgroundColor: isExpanded ? '#f5f5f5' : '#fff',
                   }}
-                  onClick={() => handleQuizClick(result.quizId, result.partnershipId)}
+                  onClick={() => handleQuizClick(result.quizId, result.partnershipId, result.attemptId)}
                 >
                   <div style={{ flex: 1 }}>
                     <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>

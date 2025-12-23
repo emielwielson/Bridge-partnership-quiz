@@ -165,22 +165,25 @@ export async function GET(request: NextRequest) {
     // Get partner ID from partnership members if not provided
     const actualPartnerId = partnerId || partnership.members.find((m) => m.userId !== user.id)?.userId
 
-    // Group attempts by quiz
-    const attemptsByQuiz = new Map<string, typeof partnership.attempts>()
+    // Group attempts by startedAt time (same attempt set for partnerships)
+    // Attempts created at the same time (within 1 second) belong to the same quiz session
+    const attemptsBySet = new Map<string, typeof partnership.attempts>()
     partnership.attempts.forEach((attempt) => {
-      const existing = attemptsByQuiz.get(attempt.quizId) || []
+      // Round startedAt to nearest second for grouping
+      const startedAtKey = Math.floor(attempt.startedAt.getTime() / 1000).toString()
+      const existing = attemptsBySet.get(startedAtKey) || []
       existing.push(attempt)
-      attemptsByQuiz.set(attempt.quizId, existing)
+      attemptsBySet.set(startedAtKey, existing)
     })
 
-    // Calculate results for each quiz (combining all attempts for that quiz)
-    const quizResults = Array.from(attemptsByQuiz.entries()).map(([quizId, quizAttempts]) => {
-      // Get quiz data from first attempt (all attempts share the same quiz)
-      const quiz = quizAttempts[0].quiz
+    // Process each attempt set - calculate results for each set separately
+    const attemptResults = Array.from(attemptsBySet.values()).map((attemptSet) => {
+      // Get quiz data from first attempt (all attempts in set share the same quiz)
+      const quiz = attemptSet[0].quiz
 
-      // Collect answers from ALL attempts for this quiz (one per member)
+      // Collect answers from ALL attempts in this set (one per member)
       const answersByQuestion = new Map<string, any[]>()
-      quizAttempts.forEach((attempt) => {
+      attemptSet.forEach((attempt) => {
         attempt.answers.forEach((answer) => {
           const existing = answersByQuestion.get(answer.questionId) || []
           existing.push(answer)
@@ -188,12 +191,12 @@ export async function GET(request: NextRequest) {
         })
       })
 
-      // Calculate agreement for each question
+      // Calculate agreement for each question based on ALL attempts in this set
       // Agreement requires: (1) all members answered, (2) all answers are identical
       const questionAgreements = quiz.questions.map((question) => {
         const questionAnswers = answersByQuestion.get(question.id) || []
         
-        // Get answers for each member
+        // Get answers for each member from ALL attempts in this set
         const memberAnswerMap = new Map<string, any>()
         questionAnswers.forEach((answer) => {
           memberAnswerMap.set(answer.userId, answer.answerData)
@@ -218,9 +221,9 @@ export async function GET(request: NextRequest) {
 
       const overallScore = calculateOverallScore(questionAgreements)
 
-      // Calculate completion status
+      // Calculate completion status for this attempt set
       const answersByUser = new Map<string, number>()
-      quizAttempts.forEach((attempt) => {
+      attemptSet.forEach((attempt) => {
         attempt.answers.forEach((answer) => {
           const count = answersByUser.get(answer.userId) || 0
           answersByUser.set(answer.userId, count + 1)
@@ -237,7 +240,7 @@ export async function GET(request: NextRequest) {
 
       const partnershipCompleted = individualCompletion.every((m) => m.completed)
 
-      // Build per-question comparison
+      // Build per-question comparison for this attempt set
       const questionComparisons = quiz.questions.map((question) => {
         const questionAnswers = answersByQuestion.get(question.id) || []
         const userAnswer = questionAnswers.find((a) => a.userId === user.id)
@@ -262,23 +265,26 @@ export async function GET(request: NextRequest) {
         }
       })
 
-      // Get the most recent attempt for metadata
-      const mostRecentAttempt = quizAttempts.sort((a, b) => {
-        const dateA = a.completedAt || a.startedAt
-        const dateB = b.completedAt || b.startedAt
-        return dateB.getTime() - dateA.getTime()
-      })[0]
+      // Use the user's attempt ID as the representative attemptId for this set
+      const userAttempt = attemptSet.find((a) => a.userId === user.id) || attemptSet[0]
+      // Get the most recent completedAt from all attempts in the set
+      const completedAttempts = attemptSet
+        .map((a) => a.completedAt)
+        .filter((d): d is Date => d !== null)
+      const completedAt = completedAttempts.length > 0
+        ? completedAttempts.sort((a, b) => b.getTime() - a.getTime())[0]
+        : null
 
       return {
-        attemptId: mostRecentAttempt.id,
+        attemptId: userAttempt.id,
         quiz: {
           id: quiz.id,
           title: quiz.title,
           topic: quiz.topic,
         },
-        startedAt: mostRecentAttempt.startedAt,
-        completedAt: mostRecentAttempt.completedAt,
-        status: mostRecentAttempt.status,
+        startedAt: userAttempt.startedAt,
+        completedAt: completedAt || userAttempt.startedAt,
+        status: userAttempt.status,
         overallScore,
         individualCompletion,
         partnershipCompleted,
@@ -286,9 +292,9 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    // Group by quiz
-    const quizzesMap = new Map<string, typeof quizResults>()
-    quizResults.forEach((result) => {
+    // Group by quiz for response structure
+    const quizzesMap = new Map<string, typeof attemptResults>()
+    attemptResults.forEach((result) => {
       const existing = quizzesMap.get(result.quiz.id) || []
       existing.push(result)
       quizzesMap.set(result.quiz.id, existing)
@@ -298,7 +304,12 @@ export async function GET(request: NextRequest) {
       quizId,
       quizTitle: attempts[0].quiz.title,
       quizTopic: attempts[0].quiz.topic,
-      attempts,
+      attempts: attempts.sort((a, b) => {
+        // Sort attempts by startedAt, most recent first
+        const dateA = a.completedAt || a.startedAt
+        const dateB = b.completedAt || b.startedAt
+        return dateB.getTime() - dateA.getTime()
+      }),
     }))
 
     return NextResponse.json(
