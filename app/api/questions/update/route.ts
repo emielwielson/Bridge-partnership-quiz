@@ -211,6 +211,12 @@ export async function PUT(request: NextRequest) {
         where: { id: questionId },
         data: updateData,
         include: {
+          quiz: {
+            select: {
+              creatorId: true,
+              state: true,
+            },
+          },
           auction: {
             include: {
               bids: {
@@ -230,6 +236,12 @@ export async function PUT(request: NextRequest) {
       updatedQuestion = await db.question.findUnique({
         where: { id: questionId },
         include: {
+          quiz: {
+            select: {
+              creatorId: true,
+              state: true,
+            },
+          },
           auction: {
             include: {
               bids: {
