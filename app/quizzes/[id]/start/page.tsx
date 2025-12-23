@@ -9,7 +9,7 @@ export default function StartQuizPage() {
   const router = useRouter()
   const quizId = params?.id as string
   const [partnerships, setPartnerships] = useState<any[]>([])
-  const [classes, setClasses] = useState<any[]>([])
+  const [teacherClasses, setTeacherClasses] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [mode, setMode] = useState<'partnership' | 'class' | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -52,7 +52,8 @@ export default function StartQuizPage() {
 
       if (classesRes.ok) {
         const classesData = await classesRes.json()
-        setClasses(classesData.classes || [])
+        // Only show classes where user is a teacher (for starting quizzes)
+        setTeacherClasses(classesData.teacherClasses || [])
       }
     } catch (err) {
       console.error(err)
@@ -124,22 +125,22 @@ export default function StartQuizPage() {
             Start with Partnership
             {partnerships.length === 0 && ' (No partnerships available)'}
           </button>
-          <button
-            onClick={() => setMode('class')}
-            disabled={classes.length === 0}
-            style={{
-              padding: '1.5rem',
-              fontSize: '1.2rem',
-              backgroundColor: classes.length === 0 ? '#e0e0e0' : '#28a745',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: classes.length === 0 ? 'not-allowed' : 'pointer',
-            }}
-          >
-            Start with Class
-            {classes.length === 0 && ' (No classes available)'}
-          </button>
+          {teacherClasses.length > 0 && (
+            <button
+              onClick={() => setMode('class')}
+              style={{
+                padding: '1.5rem',
+                fontSize: '1.2rem',
+                backgroundColor: '#28a745',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+              }}
+            >
+              Start with Class
+            </button>
+          )}
         </div>
       </div>
     )
@@ -207,11 +208,11 @@ export default function StartQuizPage() {
           ← Back
         </button>
         <h1 style={{ fontSize: '2rem', marginBottom: '2rem' }}>Select Class</h1>
-        {classes.length === 0 ? (
-          <p>You are not a member of any classes. <Link href="/classes" style={{ color: '#0070f3' }}>Join a class</Link> to start.</p>
+        {teacherClasses.length === 0 ? (
+          <p>You are not a teacher of any classes. Only teachers can start quizzes with their classes.</p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            {classes.map((cls) => (
+            {teacherClasses.map((cls) => (
               <button
                 key={cls.id}
                 onClick={() => handleStart(undefined, cls.id)}

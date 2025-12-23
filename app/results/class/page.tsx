@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
+import { AnswerType } from '@prisma/client'
+import QuestionDisplay from '@/components/quizzes/QuestionDisplay'
 
 export default function ClassResultsPage() {
   const [classes, setClasses] = useState<any[]>([])
@@ -47,11 +49,49 @@ export default function ClassResultsPage() {
         throw new Error('Failed to fetch classes')
       }
       const data = await response.json()
-      setClasses(data.classes || [])
+      // Combine teacher and student classes for selection
+      setClasses([...(data.teacherClasses || []), ...(data.studentClasses || [])])
     } catch (err) {
       console.error(err)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const formatAnswer = (answer: any, answerType: AnswerType): string => {
+    if (!answer) return 'Not answered'
+
+    switch (answerType) {
+      case AnswerType.FORCING_NON_FORCING:
+        return answer.type === 'FORCING' ? 'Forcing' : 'Non-forcing'
+
+      case AnswerType.DOUBLE_INTERPRETATION:
+      case AnswerType.REDOUBLE_INTERPRETATION:
+        return answer.option || 'Unknown'
+
+      case AnswerType.FREE_ANSWER:
+        const parts: string[] = []
+        if (answer.intent) parts.push(answer.intent)
+        if (answer.suit) {
+          const suitSymbols: Record<string, string> = {
+            CLUB: '♣',
+            DIAMOND: '♦',
+            HEART: '♥',
+            SPADE: '♠',
+            NO_TRUMP: 'NT',
+          }
+          // Handle multiple suits (format: "CLUB+DIAMOND")
+          const suits = answer.suit.split('+').map((s: string) => suitSymbols[s] || s)
+          parts.push(suits.join(' + '))
+        }
+        if (answer.strength) parts.push(answer.strength)
+        return parts.join(' ') || 'Unknown'
+
+      case AnswerType.MULTIPLE_CHOICE:
+        return answer.option || 'Unknown'
+
+      default:
+        return JSON.stringify(answer)
     }
   }
 
@@ -128,57 +168,78 @@ export default function ClassResultsPage() {
                 backgroundColor: '#fff',
               }}
             >
-              <h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{quiz.quizTitle}</h2>
-              <p style={{ color: '#666', marginBottom: '1rem' }}>Topic: {quiz.quizTopic}</p>
+              <div style={{ marginBottom: '1rem', padding: '0.75rem', backgroundColor: '#f0f0f0', borderRadius: '4px' }}>
+                <div style={{ fontSize: '0.9rem', color: '#666' }}>
+                  Completed: {new Date(quiz.completedAt).toLocaleDateString()} {new Date(quiz.completedAt).toLocaleTimeString()}
+                </div>
+                <div style={{ fontSize: '0.9rem', color: '#666', marginTop: '0.25rem' }}>
+                  {quiz.studentsAnswered} of {quiz.totalStudents} students answered
+                </div>
+              </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {quiz.attempts.map((attempt: any) => (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', marginTop: '1.5rem' }}>
+                {quiz.questions.map((question: any, idx: number) => (
                   <div
-                    key={attempt.attemptId}
+                    key={question.questionId}
                     style={{
-                      padding: '1rem',
-                      backgroundColor: '#f9f9f9',
-                      borderRadius: '4px',
+                      padding: '1.5rem',
+                      border: '1px solid #ddd',
+                      borderRadius: '8px',
+                      backgroundColor: '#fff',
                     }}
                   >
-                    <div style={{ marginBottom: '0.5rem' }}>
-                      <span style={{ fontSize: '0.9rem', color: '#666' }}>
-                        Attempt from {new Date(attempt.startedAt).toLocaleDateString()}
-                      </span>
-                      <span style={{ marginLeft: '1rem' }}>
-                        {attempt.answeredQuestions} / {attempt.totalQuestions} answered ({attempt.completionPercent}%)
-                      </span>
+                    <div style={{ marginBottom: '1rem' }}>
+                      <h3 style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>
+                        Question {idx + 1}
+                      </h3>
+                      <p style={{ color: '#666', marginBottom: '1rem' }}>{question.prompt}</p>
+                      {question.auction && (
+                        <div style={{ marginBottom: '1rem' }}>
+                          <QuestionDisplay
+                            auction={question.auction}
+                            prompt=""
+                            questionOrder={idx}
+                            totalQuestions={quiz.questions.length}
+                          />
+                        </div>
+                      )}
                     </div>
 
-                    {attempt.status === 'COMPLETED' && (
-                      <div style={{ marginTop: '1rem' }}>
-                        <strong>Your Answers:</strong>
-                        <div style={{ marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                          {attempt.questions.map((q: any, idx: number) => (
+                    {question.totalAnswers === 0 ? (
+                      <div style={{ padding: '1rem', backgroundColor: '#f9f9f9', borderRadius: '4px', color: '#666' }}>
+                        No students have answered this question yet.
+                      </div>
+                    ) : (
+                      <div>
+                        <div style={{ marginBottom: '0.75rem', fontSize: '0.9rem', color: '#666' }}>
+                          {question.totalAnswers} answer{question.totalAnswers !== 1 ? 's' : ''} received
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                          {question.answerDistribution.map((dist: any, distIdx: number) => (
                             <div
-                              key={q.questionId}
+                              key={distIdx}
                               style={{
+                                display: 'flex',
+                                alignItems: 'center',
                                 padding: '0.75rem',
-                                backgroundColor: q.answered ? '#e3f2fd' : '#fff',
+                                backgroundColor: '#f9f9f9',
                                 borderRadius: '4px',
-                                border: '1px solid #ddd',
+                                border: '1px solid #e0e0e0',
                               }}
                             >
-                              <div style={{ fontWeight: 'bold', marginBottom: '0.25rem' }}>
-                                Question {idx + 1}
-                              </div>
-                              <div style={{ fontSize: '0.9rem', color: '#666', marginBottom: '0.25rem' }}>
-                                {q.prompt}
-                              </div>
-                              {q.answered ? (
-                                <div style={{ fontSize: '0.9rem' }}>
-                                  <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
-                                    {JSON.stringify(q.userAnswer, null, 2)}
-                                  </pre>
+                              <div style={{ flex: 1 }}>
+                                <div style={{ fontWeight: '500', marginBottom: '0.25rem' }}>
+                                  {formatAnswer(dist.answer, question.answerType)}
                                 </div>
-                              ) : (
-                                <span style={{ fontStyle: 'italic', color: '#999' }}>Not answered</span>
-                              )}
+                                <div style={{ fontSize: '0.85rem', color: '#666' }}>
+                                  {dist.count} student{dist.count !== 1 ? 's' : ''}
+                                </div>
+                              </div>
+                              <div style={{ minWidth: '80px', textAlign: 'right' }}>
+                                <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#0070f3' }}>
+                                  {dist.percentage}%
+                                </div>
+                              </div>
                             </div>
                           ))}
                         </div>

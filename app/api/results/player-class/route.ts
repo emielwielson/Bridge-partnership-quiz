@@ -120,8 +120,32 @@ export async function GET(request: NextRequest) {
       .map(([quizId, quizAttempts]) => {
         const quiz = quizAttempts[0].quiz
         
-        // Separate completed and in-progress attempts
-        const completedAttempts = quizAttempts.filter((a) => a.status === 'COMPLETED')
+        // Group attempts by attempt set (same startedAt time, within 1 second window)
+        // This identifies the original students who participated when the quiz was started
+        const attemptsBySet = new Map<string, typeof quizAttempts>()
+        quizAttempts.forEach((attempt) => {
+          const startedAtKey = Math.floor(attempt.startedAt.getTime() / 1000).toString()
+          const existing = attemptsBySet.get(startedAtKey) || []
+          existing.push(attempt)
+          attemptsBySet.set(startedAtKey, existing)
+        })
+
+        // Get the most recent attempt set (the one we're showing results for)
+        const mostRecentSet = Array.from(attemptsBySet.entries())
+          .sort(([keyA, attemptsA], [keyB, attemptsB]) => {
+            const dateA = attemptsA[0].startedAt.getTime()
+            const dateB = attemptsB[0].startedAt.getTime()
+            return dateB - dateA
+          })[0]
+
+        const mostRecentAttempts = mostRecentSet ? mostRecentSet[1] : quizAttempts
+        
+        // Calculate total students based on who actually participated in this attempt set
+        // This locks the student count to those who were in the class when the quiz was started
+        const totalStudents = new Set(mostRecentAttempts.map((a) => a.userId)).size
+        
+        // Separate completed and in-progress attempts from the most recent set
+        const completedAttempts = mostRecentAttempts.filter((a) => a.status === 'COMPLETED')
         const studentsCompleted = completedAttempts.length
         
         // Collect all answers for each question from COMPLETED attempts only
@@ -172,7 +196,7 @@ export async function GET(request: NextRequest) {
         })
 
         // Get the most recent attempt date (completed or started)
-        const mostRecentAttempt = quizAttempts.sort((a, b) => {
+        const mostRecentAttempt = mostRecentAttempts.sort((a, b) => {
           const dateA = (a.completedAt || a.startedAt).getTime()
           const dateB = (b.completedAt || b.startedAt).getTime()
           return dateB - dateA
@@ -183,9 +207,9 @@ export async function GET(request: NextRequest) {
           quizTitle: quiz.title,
           quizTopic: quiz.topic,
           completedAt: mostRecentAttempt.completedAt || mostRecentAttempt.startedAt,
-          totalStudents: studentIds.length,
+          totalStudents,
           studentsCompleted,
-          studentsStarted: new Set(quizAttempts.map((a) => a.userId)).size,
+          studentsStarted: new Set(mostRecentAttempts.map((a) => a.userId)).size,
           questions: questionResults,
         }
       })

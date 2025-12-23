@@ -25,6 +25,15 @@ interface ClassData {
   } | null
 }
 
+interface CompletedQuiz {
+  quizId: string
+  quizTitle: string
+  quizTopic: string
+  completedAt: string
+  totalStudents: number
+  studentsCompleted: number
+}
+
 export default function ClassDashboard() {
   const params = useParams()
   const classId = params?.id as string
@@ -36,6 +45,8 @@ export default function ClassDashboard() {
   const [newName, setNewName] = useState('')
   const [removingMember, setRemovingMember] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const [completedQuizzes, setCompletedQuizzes] = useState<CompletedQuiz[]>([])
+  const [loadingCompleted, setLoadingCompleted] = useState(false)
 
   const fetchClassData = useCallback(async () => {
     try {
@@ -67,8 +78,40 @@ export default function ClassDashboard() {
   useEffect(() => {
     if (classId) {
       fetchClassData()
+      fetchCompletedQuizzes()
     }
   }, [classId, fetchClassData])
+
+  const fetchCompletedQuizzes = useCallback(async () => {
+    if (!classId) return
+    
+    setLoadingCompleted(true)
+    try {
+      const response = await fetch(`/api/results/player-class?classId=${classId}`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch completed quizzes')
+      }
+      const data = await response.json()
+      
+      // Filter to only show completed quizzes (where all students have completed)
+      const completed = (data.quizzes || []).filter((quiz: any) => 
+        quiz.completedAt && quiz.studentsCompleted === quiz.totalStudents
+      )
+      
+      // Sort by completedAt date (most recent first)
+      completed.sort((a: CompletedQuiz, b: CompletedQuiz) => {
+        const dateA = new Date(a.completedAt).getTime()
+        const dateB = new Date(b.completedAt).getTime()
+        return dateB - dateA
+      })
+      
+      setCompletedQuizzes(completed)
+    } catch (err) {
+      console.error('Failed to load completed quizzes:', err)
+    } finally {
+      setLoadingCompleted(false)
+    }
+  }, [classId])
 
   const copyClassCode = async () => {
     if (classData?.classLink) {
@@ -382,29 +425,79 @@ export default function ClassDashboard() {
         </div>
       </div>
 
-      {userRole === 'STUDENT' && (
-        <div>
-          <h2 style={{ fontSize: '1.5rem', marginBottom: '0.75rem' }}>Active Quiz</h2>
-          {classData.activeQuiz ? (
-            <div style={{
-              padding: '1rem',
-              border: '1px solid #ddd',
-              borderRadius: '8px',
-              backgroundColor: '#fff',
-            }}>
-              <h3>{classData.activeQuiz.title}</h3>
-              {classData.activeQuiz.description && (
-                <p style={{ color: '#666', marginTop: '0.5rem' }}>{classData.activeQuiz.description}</p>
-              )}
+      <div>
+        <h2 style={{ fontSize: '1.5rem', marginBottom: '0.75rem' }}>Active Quiz</h2>
+        {classData.activeQuiz ? (
+          <div style={{
+            padding: '1rem',
+            border: '1px solid #ddd',
+            borderRadius: '8px',
+            backgroundColor: '#fff',
+          }}>
+            <h3>{classData.activeQuiz.title}</h3>
+            {classData.activeQuiz.description && (
+              <p style={{ color: '#666', marginTop: '0.5rem' }}>{classData.activeQuiz.description}</p>
+            )}
+            {userRole === 'STUDENT' && (
               <p style={{ marginTop: '1rem', color: '#666' }}>
                 Quiz participation features coming soon...
               </p>
-            </div>
-          ) : (
-            <p style={{ color: '#666' }}>No active quiz. Wait for your teacher to start one.</p>
-          )}
-        </div>
-      )}
+            )}
+          </div>
+        ) : (
+          <p style={{ color: '#666' }}>No active quiz.</p>
+        )}
+      </div>
+
+      <div style={{ marginTop: '2rem' }}>
+        <h2 style={{ fontSize: '1.5rem', marginBottom: '0.75rem' }}>Completed Quizzes</h2>
+        {loadingCompleted ? (
+          <p style={{ color: '#666' }}>Loading completed quizzes...</p>
+        ) : completedQuizzes.length > 0 ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            {completedQuizzes.map((quiz) => (
+              <div
+                key={quiz.quizId}
+                style={{
+                  padding: '1rem',
+                  border: '1px solid #ddd',
+                  borderRadius: '8px',
+                  backgroundColor: '#fff',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}
+              >
+                <div style={{ flex: 1 }}>
+                  <h3 style={{ fontSize: '1.1rem', marginBottom: '0.25rem' }}>{quiz.quizTitle}</h3>
+                  <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '0.5rem' }}>
+                    {quiz.quizTopic}
+                  </p>
+                  <p style={{ fontSize: '0.85rem', color: '#888' }}>
+                    Completed: {new Date(quiz.completedAt).toLocaleDateString()} • {quiz.studentsCompleted}/{quiz.totalStudents} students
+                  </p>
+                </div>
+                <a
+                  href={`/results?classId=${classId}`}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    backgroundColor: '#0070f3',
+                    color: 'white',
+                    textDecoration: 'none',
+                    borderRadius: '4px',
+                    fontSize: '0.9rem',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  View Results
+                </a>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p style={{ color: '#666' }}>No completed quizzes yet.</p>
+        )}
+      </div>
     </div>
   )
 }

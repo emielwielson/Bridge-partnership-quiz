@@ -119,6 +119,45 @@ export async function checkAnswerEditability(
   attemptId: string,
   userId: string
 ): Promise<{ editable: boolean; reason?: string }> {
+  // Check if attempt is completed and get attempt type
+  const attempt = await db.attempt.findUnique({
+    where: { id: attemptId },
+    select: {
+      status: true,
+      userId: true,
+      classId: true,
+      partnershipId: true,
+    },
+  })
+
+  if (!attempt) {
+    return {
+      editable: false,
+      reason: 'Attempt not found',
+    }
+  }
+
+  // For class attempts, answers can always be edited until attempt is completed
+  if (attempt.classId) {
+    if (attempt.status === 'COMPLETED') {
+      return {
+        editable: false,
+        reason: 'Answer cannot be edited because the attempt is completed',
+      }
+    }
+    // Only the user who created the attempt can edit their own answers
+    if (attempt.userId !== userId) {
+      return {
+        editable: false,
+        reason: 'You can only edit your own answers',
+      }
+    }
+    return {
+      editable: true,
+    }
+  }
+
+  // For partnership attempts, check visibility
   const visibility = await checkAnswerVisibility(questionId, attemptId)
 
   // If answers are visible (all answered), they can't be edited
@@ -128,15 +167,6 @@ export async function checkAnswerEditability(
       reason: 'Answer cannot be edited because all partnership members have already answered',
     }
   }
-
-  // Check if attempt is completed
-  const attempt = await db.attempt.findUnique({
-    where: { id: attemptId },
-    select: {
-      status: true,
-      userId: true,
-    },
-  })
 
   if (!attempt) {
     return {

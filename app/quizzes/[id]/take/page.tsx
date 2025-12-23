@@ -39,7 +39,18 @@ export default function TakeQuizPage() {
       }
 
       const data = await response.json()
-      setAttemptId(data.attempt.id)
+      
+      // For class quizzes, teacher doesn't get an attempt
+      if (classIdParam && data.message && !data.attempt) {
+        // Quiz started successfully for class, show success message
+        setError('') // Clear any errors
+        setAttemptId(null) // No attempt for teacher
+        return
+      }
+      
+      if (data.attempt) {
+        setAttemptId(data.attempt.id)
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to start quiz')
     } finally {
@@ -93,10 +104,41 @@ export default function TakeQuizPage() {
     )
   }
 
-  if (!attemptId) {
+  // For class quizzes, teacher doesn't participate, so show success message
+  if (classId && !attemptId && !error) {
+    return (
+      <div style={{ padding: '2rem', maxWidth: '600px', margin: '0 auto', textAlign: 'center' }}>
+        <div style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#28a745' }}>
+          ✓ Quiz started successfully!
+        </div>
+        <p style={{ marginBottom: '2rem', color: '#666' }}>
+          The quiz has been started for your class. Students can now take the quiz.
+        </p>
+        <button
+          onClick={() => router.push('/quizzes/active')}
+          style={{
+            padding: '0.75rem 1.5rem',
+            backgroundColor: '#0070f3',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+          }}
+        >
+          Go to Active Quizzes
+        </button>
+      </div>
+    )
+  }
+
+  if (!attemptId && !classId) {
     return <div>Failed to create attempt</div>
   }
 
-  return <QuizPlayer attemptId={attemptId} />
+  if (attemptId) {
+    return <QuizPlayer attemptId={attemptId} />
+  }
+
+  return null
 }
 

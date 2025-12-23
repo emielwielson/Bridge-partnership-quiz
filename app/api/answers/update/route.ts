@@ -300,8 +300,75 @@ export async function PUT(request: NextRequest) {
             })
           }
         }
-      } else {
+      } else if (attempt.classId) {
         // For class attempts, completion is individual
+        allMembersCompleted = answeredCount === totalQuestions
+        
+        // Update attempt status if completed
+        if (allMembersCompleted && attempt.status !== AttemptStatus.COMPLETED) {
+          await db.attempt.update({
+            where: { id: attemptId },
+            data: {
+              status: AttemptStatus.COMPLETED,
+              completedAt: new Date(),
+            },
+          })
+
+          // Check if all students in the class have completed this quiz
+          // Group attempts by attempt set (same startedAt time, within 1 second window)
+          const allClassAttempts = await db.attempt.findMany({
+            where: {
+              classId: attempt.classId,
+              quizId: attempt.quizId,
+            },
+            select: {
+              id: true,
+              userId: true,
+              status: true,
+              startedAt: true,
+            },
+          })
+
+          // Group by attempt set (same startedAt time)
+          const attemptsBySet = new Map<string, typeof allClassAttempts>()
+          allClassAttempts.forEach((a) => {
+            const startedAtKey = Math.floor(a.startedAt.getTime() / 1000).toString()
+            const existing = attemptsBySet.get(startedAtKey) || []
+            existing.push(a)
+            attemptsBySet.set(startedAtKey, existing)
+          })
+
+          // Get the most recent attempt set (the one we're checking)
+          const mostRecentSet = Array.from(attemptsBySet.entries())
+            .sort(([keyA, attemptsA], [keyB, attemptsB]) => {
+              const dateA = attemptsA[0].startedAt.getTime()
+              const dateB = attemptsB[0].startedAt.getTime()
+              return dateB - dateA
+            })[0]
+
+          if (mostRecentSet) {
+            const mostRecentAttempts = mostRecentSet[1]
+            const studentsInSet = new Set(mostRecentAttempts.map((a) => a.userId))
+            
+            // Check if all students in this attempt set have completed
+            const allStudentsCompleted = Array.from(studentsInSet).every((studentId) => {
+              const studentAttempt = mostRecentAttempts.find((a) => a.userId === studentId)
+              return studentAttempt?.status === AttemptStatus.COMPLETED
+            })
+
+            // If all students completed, clear activeQuizId
+            if (allStudentsCompleted) {
+              await db.class.update({
+                where: { id: attempt.classId },
+                data: {
+                  activeQuizId: null,
+                },
+              })
+            }
+          }
+        }
+      } else {
+        // For individual attempts (not partnership or class)
         allMembersCompleted = answeredCount === totalQuestions
         
         // Update attempt status if completed
