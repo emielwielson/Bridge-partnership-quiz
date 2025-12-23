@@ -122,7 +122,7 @@ export async function PUT(request: NextRequest) {
     if (answerOptions !== undefined) {
       // Validate answer options
       const newAnswerType = answerType !== undefined ? answerType as AnswerType : question.answerType
-      if (newAnswerType === AnswerType.MULTIPLE_CHOICE || newAnswerType === AnswerType.DOUBLE_INTERPRETATION) {
+      if (newAnswerType === AnswerType.MULTIPLE_CHOICE || newAnswerType === AnswerType.DOUBLE_INTERPRETATION || newAnswerType === AnswerType.REDOUBLE_INTERPRETATION) {
         if (!Array.isArray(answerOptions) || answerOptions.length === 0) {
           return NextResponse.json(
             { error: 'Answer options are required for this answer type' },

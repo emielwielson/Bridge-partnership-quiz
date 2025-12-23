@@ -23,6 +23,7 @@ export interface LastBid {
  * Rules:
  * - Forcing/Non-forcing: only for contract bids or pass
  * - Double Interpretation: only for doubles
+ * - Redouble Interpretation: only for redoubles
  * - Free Answer: available for any bid type
  * - Multiple Choice: available for any bid type
  */
@@ -50,6 +51,18 @@ export function validateAnswerType(
           valid: false,
           error: {
             message: 'Double Interpretation answer type is only available when the last bid is a Double',
+          },
+        }
+      }
+      return { valid: true }
+
+    case AnswerType.REDOUBLE_INTERPRETATION:
+      // Only valid for redoubles
+      if (lastBid.bidType !== BidType.REDOUBLE) {
+        return {
+          valid: false,
+          error: {
+            message: 'Redouble Interpretation answer type is only available when the last bid is a Redouble',
           },
         }
       }
@@ -87,6 +100,11 @@ export function getAvailableAnswerTypes(lastBid: LastBid): AnswerType[] {
   // Double Interpretation: only for doubles
   if (lastBid.bidType === BidType.DOUBLE) {
     available.push(AnswerType.DOUBLE_INTERPRETATION)
+  }
+
+  // Redouble Interpretation: only for redoubles
+  if (lastBid.bidType === BidType.REDOUBLE) {
+    available.push(AnswerType.REDOUBLE_INTERPRETATION)
   }
 
   // Free Answer and Multiple Choice: always available

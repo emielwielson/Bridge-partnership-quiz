@@ -6,6 +6,7 @@ import { AnswerType } from '@prisma/client'
 import QuestionDisplay from './QuestionDisplay'
 import ForcingNonForcingInput from './ForcingNonForcingInput'
 import DoubleInterpretationInput from './DoubleInterpretationInput'
+import RedoubleInterpretationInput from './RedoubleInterpretationInput'
 import FreeAnswerInput from './FreeAnswerInput'
 import MultipleChoiceInput from './MultipleChoiceInput'
 
@@ -308,6 +309,15 @@ export default function QuizPlayer({ attemptId }: QuizPlayerProps) {
         {currentQuestion.answerType === AnswerType.DOUBLE_INTERPRETATION && (
           <DoubleInterpretationInput
             options={(currentQuestion.answerOptions as string[]) || ['Penalty', 'Take-out', 'Values']}
+            value={pendingAnswer || currentAnswer || null}
+            onChange={handleAnswerChange}
+            disabled={saving}
+          />
+        )}
+
+        {currentQuestion.answerType === AnswerType.REDOUBLE_INTERPRETATION && (
+          <RedoubleInterpretationInput
+            options={(currentQuestion.answerOptions as string[]) || ['SOS', 'Extra values', 'To play']}
             value={pendingAnswer || currentAnswer || null}
             onChange={handleAnswerChange}
             disabled={saving}

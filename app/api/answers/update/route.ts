@@ -39,6 +39,15 @@ function validateAnswerData(answerType: AnswerType, answerData: any): {
       }
       return { valid: true }
 
+    case AnswerType.REDOUBLE_INTERPRETATION:
+      if (!answerData.option || typeof answerData.option !== 'string') {
+        return {
+          valid: false,
+          error: 'Redouble interpretation answer must have option as a string',
+        }
+      }
+      return { valid: true }
+
     case AnswerType.FREE_ANSWER:
       if (!answerData.intent || typeof answerData.intent !== 'string') {
         return {
@@ -142,10 +151,11 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    // Validate answer option for multiple choice and double interpretation
+    // Validate answer option for multiple choice, double interpretation, and redouble interpretation
     if (
       (existingAnswer.question.answerType === AnswerType.MULTIPLE_CHOICE ||
-        existingAnswer.question.answerType === AnswerType.DOUBLE_INTERPRETATION) &&
+        existingAnswer.question.answerType === AnswerType.DOUBLE_INTERPRETATION ||
+        existingAnswer.question.answerType === AnswerType.REDOUBLE_INTERPRETATION) &&
       existingAnswer.question.answerOptions &&
       Array.isArray(existingAnswer.question.answerOptions)
     ) {

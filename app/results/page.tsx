@@ -216,6 +216,7 @@ export default function ResultsPage() {
         return answer.type === 'FORCING' ? 'Forcing' : 'Non-forcing'
 
       case AnswerType.DOUBLE_INTERPRETATION:
+      case AnswerType.REDOUBLE_INTERPRETATION:
         return answer.option || 'Unknown'
 
       case AnswerType.FREE_ANSWER:

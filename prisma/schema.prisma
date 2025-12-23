@@ -32,6 +32,7 @@ enum QuizState {
 enum AnswerType {
   FORCING_NON_FORCING
   DOUBLE_INTERPRETATION
+  REDOUBLE_INTERPRETATION
   FREE_ANSWER
   MULTIPLE_CHOICE
 }
@@ -69,20 +70,20 @@ enum PartnershipInvitationStatus {
 }
 
 model User {
-  id                String             @id @default(cuid())
-  username          String             @unique
-  passwordHash      String
-  inviteCode        String             @unique
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
-  sessions          Session[]
-  partnershipMembers PartnershipMember[]
-  classMembers     ClassMember[]
-  classesTaught     Class[]
-  createdQuizzes    Quiz[]
-  answers           Answer[]
-  attempts          Attempt[]
-  sentPartnershipInvitations PartnershipInvitation[] @relation("Inviter")
+  id                             String                  @id @default(cuid())
+  username                       String                  @unique
+  passwordHash                   String
+  inviteCode                     String                  @unique
+  createdAt                      DateTime                @default(now())
+  updatedAt                      DateTime                @updatedAt
+  sessions                       Session[]
+  partnershipMembers             PartnershipMember[]
+  classMembers                   ClassMember[]
+  classesTaught                  Class[]
+  createdQuizzes                 Quiz[]
+  answers                        Answer[]
+  attempts                       Attempt[]
+  sentPartnershipInvitations     PartnershipInvitation[] @relation("Inviter")
   receivedPartnershipInvitations PartnershipInvitation[] @relation("Invitee")
 
   @@index([username])
@@ -101,11 +102,11 @@ model Session {
 }
 
 model Partnership {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  members   PartnershipMember[]
-  attempts  Attempt[]
+  id          String                  @id @default(cuid())
+  createdAt   DateTime                @default(now())
+  updatedAt   DateTime                @updatedAt
+  members     PartnershipMember[]
+  attempts    Attempt[]
   invitations PartnershipInvitation[]
 
   @@index([createdAt])
@@ -133,8 +134,8 @@ model PartnershipInvitation {
   createdAt     DateTime                    @default(now())
   updatedAt     DateTime                    @updatedAt
   partnership   Partnership                 @relation(fields: [partnershipId], references: [id], onDelete: Cascade)
-  inviter       User                         @relation("Inviter", fields: [inviterId], references: [id], onDelete: Cascade)
-  invitee       User                         @relation("Invitee", fields: [inviteeId], references: [id], onDelete: Cascade)
+  inviter       User                        @relation("Inviter", fields: [inviterId], references: [id], onDelete: Cascade)
+  invitee       User                        @relation("Invitee", fields: [inviteeId], references: [id], onDelete: Cascade)
 
   @@unique([partnershipId, inviteeId])
   @@index([partnershipId])
@@ -143,15 +144,15 @@ model PartnershipInvitation {
 }
 
 model Class {
-  id           String         @id @default(cuid())
+  id           String        @id @default(cuid())
   name         String
-  classLink    String         @unique
+  classLink    String        @unique
   teacherId    String
   activeQuizId String?
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  teacher      User           @relation(fields: [teacherId], references: [id], onDelete: Cascade)
-  activeQuiz   Quiz?          @relation(fields: [activeQuizId], references: [id], onDelete: SetNull)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  teacher      User          @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  activeQuiz   Quiz?         @relation(fields: [activeQuizId], references: [id], onDelete: SetNull)
   members      ClassMember[]
   attempts     Attempt[]
 
@@ -161,13 +162,13 @@ model Class {
 }
 
 model ClassMember {
-  id        String          @id @default(cuid())
-  classId   String
-  userId    String
-  role      ClassMemberRole
-  joinedAt  DateTime        @default(now())
-  class     Class           @relation(fields: [classId], references: [id], onDelete: Cascade)
-  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id       String          @id @default(cuid())
+  classId  String
+  userId   String
+  role     ClassMemberRole
+  joinedAt DateTime        @default(now())
+  class    Class           @relation(fields: [classId], references: [id], onDelete: Cascade)
+  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([classId, userId])
   @@index([classId])
@@ -182,7 +183,7 @@ model Quiz {
   topic       String
   state       QuizState  @default(DRAFT)
   publicLink  String?    @unique
-  creatorId  String
+  creatorId   String
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
   creator     User       @relation(fields: [creatorId], references: [id], onDelete: Cascade)
@@ -198,17 +199,17 @@ model Quiz {
 }
 
 model Question {
-  id           String      @id @default(cuid())
-  quizId       String
-  prompt       String
-  answerType   AnswerType
-  answerOptions Json?      // Array of strings for MULTIPLE_CHOICE and DOUBLE_INTERPRETATION
-  order        Int
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
-  quiz         Quiz        @relation(fields: [quizId], references: [id], onDelete: Cascade)
-  auction      Auction?
-  answers      Answer[]
+  id            String     @id @default(cuid())
+  quizId        String
+  prompt        String
+  answerType    AnswerType
+  answerOptions Json? // Array of strings for MULTIPLE_CHOICE and DOUBLE_INTERPRETATION
+  order         Int
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  quiz          Quiz       @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  auction       Auction?
+  answers       Answer[]
 
   @@index([quizId])
   @@index([order])
@@ -216,14 +217,14 @@ model Question {
 }
 
 model Auction {
-  id          String    @id @default(cuid())
-  questionId  String    @unique
-  dealer      Dealer
+  id            String        @id @default(cuid())
+  questionId    String        @unique
+  dealer        Dealer
   vulnerability Vulnerability
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  question    Question  @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  bids        Bid[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  question      Question      @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  bids          Bid[]
 
   @@index([questionId])
 }
@@ -257,19 +258,19 @@ model Alert {
 }
 
 model Attempt {
-  id            String         @id @default(cuid())
+  id            String        @id @default(cuid())
   quizId        String
   partnershipId String?
   classId       String?
-  userId         String
-  status         AttemptStatus @default(IN_PROGRESS)
-  startedAt      DateTime       @default(now())
-  completedAt    DateTime?
-  quiz           Quiz           @relation(fields: [quizId], references: [id], onDelete: Cascade)
-  partnership    Partnership?   @relation(fields: [partnershipId], references: [id], onDelete: Cascade)
-  class          Class?         @relation(fields: [classId], references: [id], onDelete: Cascade)
-  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  answers        Answer[]
+  userId        String
+  status        AttemptStatus @default(IN_PROGRESS)
+  startedAt     DateTime      @default(now())
+  completedAt   DateTime?
+  quiz          Quiz          @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  partnership   Partnership?  @relation(fields: [partnershipId], references: [id], onDelete: Cascade)
+  class         Class?        @relation(fields: [classId], references: [id], onDelete: Cascade)
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  answers       Answer[]
 
   @@index([quizId])
   @@index([partnershipId])
@@ -297,4 +298,3 @@ model Answer {
   @@index([attemptId])
   @@index([questionId, attemptId])
 }
-

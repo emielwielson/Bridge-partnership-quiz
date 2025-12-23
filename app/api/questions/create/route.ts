@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate answer options
-    if (answerType === AnswerType.MULTIPLE_CHOICE || answerType === AnswerType.DOUBLE_INTERPRETATION) {
+    if (answerType === AnswerType.MULTIPLE_CHOICE || answerType === AnswerType.DOUBLE_INTERPRETATION || answerType === AnswerType.REDOUBLE_INTERPRETATION) {
       if (!answerOptions || !Array.isArray(answerOptions) || answerOptions.length === 0) {
         return NextResponse.json(
           { error: 'Answer options are required for this answer type' },

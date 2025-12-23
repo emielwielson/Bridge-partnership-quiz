@@ -43,7 +43,7 @@ export default function QuestionEditor() {
   // Get available answer types based on last bid
   const getAvailableAnswerTypes = (): AnswerType[] => {
     if (bids.length === 0) {
-      // No bids yet - show all except double interpretation
+      // No bids yet - show all except double/redouble interpretation
       return [
         AnswerType.FORCING_NON_FORCING,
         AnswerType.FREE_ANSWER,
@@ -62,6 +62,11 @@ export default function QuestionEditor() {
     // Double Interpretation: only for doubles
     if (lastBid.bidType === BidType.DOUBLE) {
       available.push(AnswerType.DOUBLE_INTERPRETATION)
+    }
+    
+    // Redouble Interpretation: only for redoubles
+    if (lastBid.bidType === BidType.REDOUBLE) {
+      available.push(AnswerType.REDOUBLE_INTERPRETATION)
     }
     
     // Free Answer and Multiple Choice: always available
@@ -95,6 +100,9 @@ export default function QuestionEditor() {
       } else if (question.answerType === AnswerType.DOUBLE_INTERPRETATION && (!question.answerOptions || !Array.isArray(question.answerOptions))) {
         // Default options for double interpretation
         setAnswerOptions(['Penalty', 'Take-out', 'Values'])
+      } else if (question.answerType === AnswerType.REDOUBLE_INTERPRETATION && (!question.answerOptions || !Array.isArray(question.answerOptions))) {
+        // Default options for redouble interpretation
+        setAnswerOptions(['SOS', 'Extra values', 'To play'])
       } else {
         setAnswerOptions([])
       }
@@ -374,36 +382,49 @@ export default function QuestionEditor() {
     setShowAlertEditor(false) // Reset alert checkbox after adding bid
     setAlertMeaning('') // Clear alert meaning
     
-    // Reset answer type if current selection is no longer valid
+    // Automatically set answer type to default based on bid type
     const updatedBids = [...bids, newBid]
     const lastBid = updatedBids[updatedBids.length - 1]
-    if (answerType === AnswerType.DOUBLE_INTERPRETATION && lastBid.bidType !== BidType.DOUBLE) {
-      // Switch to a valid default
-      if (lastBid.bidType === BidType.CONTRACT || lastBid.bidType === BidType.PASS) {
-        setAnswerType(AnswerType.FORCING_NON_FORCING)
-        setAnswerOptions([])
-      } else {
-        setAnswerType(AnswerType.FREE_ANSWER)
-        setAnswerOptions([])
-      }
-    } else if (answerType === AnswerType.FORCING_NON_FORCING && 
-               lastBid.bidType !== BidType.CONTRACT && 
-               lastBid.bidType !== BidType.PASS) {
-      // Switch to a valid default
-      setAnswerType(AnswerType.FREE_ANSWER)
+    
+    if (lastBid.bidType === BidType.DOUBLE) {
+      // Double → Double interpretation
+      setAnswerType(AnswerType.DOUBLE_INTERPRETATION)
+      setAnswerOptions(['Penalty', 'Take-out', 'Values'])
+    } else if (lastBid.bidType === BidType.REDOUBLE) {
+      // Redouble → Redouble interpretation
+      setAnswerType(AnswerType.REDOUBLE_INTERPRETATION)
+      setAnswerOptions(['SOS', 'Extra values', 'To play'])
+    } else if (lastBid.bidType === BidType.CONTRACT || lastBid.bidType === BidType.PASS) {
+      // Pass or contract bid → Forcing/Non-forcing
+      setAnswerType(AnswerType.FORCING_NON_FORCING)
       setAnswerOptions([])
-    } else if (answerType === AnswerType.DOUBLE_INTERPRETATION && lastBid.bidType === BidType.DOUBLE) {
-      // Initialize default options for double interpretation if empty
-      if (answerOptions.length === 0) {
-        setAnswerOptions(['Penalty', 'Take-out', 'Values'])
-      }
     }
   }
 
   const undoBid = () => {
     if (bids.length > 0) {
-      setBids(bids.slice(0, -1))
+      const newBids = bids.slice(0, -1)
+      setBids(newBids)
       setSelectedLevel(null)
+      
+      // Reset answer type to default based on new last bid
+      if (newBids.length === 0) {
+        // No bids left - reset to default
+        setAnswerType(AnswerType.FORCING_NON_FORCING)
+        setAnswerOptions([])
+      } else {
+        const lastBid = newBids[newBids.length - 1]
+        if (lastBid.bidType === BidType.DOUBLE) {
+          setAnswerType(AnswerType.DOUBLE_INTERPRETATION)
+          setAnswerOptions(['Penalty', 'Take-out', 'Values'])
+        } else if (lastBid.bidType === BidType.REDOUBLE) {
+          setAnswerType(AnswerType.REDOUBLE_INTERPRETATION)
+          setAnswerOptions(['SOS', 'Extra values', 'To play'])
+        } else if (lastBid.bidType === BidType.CONTRACT || lastBid.bidType === BidType.PASS) {
+          setAnswerType(AnswerType.FORCING_NON_FORCING)
+          setAnswerOptions([])
+        }
+      }
     }
   }
 
@@ -511,8 +532,8 @@ export default function QuestionEditor() {
       return
     }
 
-    // Validate answer options for multiple choice and double interpretation
-    if (answerType === AnswerType.MULTIPLE_CHOICE || answerType === AnswerType.DOUBLE_INTERPRETATION) {
+    // Validate answer options for multiple choice, double interpretation, and redouble interpretation
+    if (answerType === AnswerType.MULTIPLE_CHOICE || answerType === AnswerType.DOUBLE_INTERPRETATION || answerType === AnswerType.REDOUBLE_INTERPRETATION) {
       const validOptions = answerOptions.filter(opt => opt.trim().length > 0)
       if (answerType === AnswerType.MULTIPLE_CHOICE && validOptions.length < 2) {
         setError('Multiple choice questions require at least 2 options')
@@ -538,8 +559,8 @@ export default function QuestionEditor() {
       const url = questionId ? '/api/questions/update' : '/api/questions/create'
       const method = questionId ? 'PUT' : 'POST'
 
-      // Prepare answer options - only include for MULTIPLE_CHOICE and DOUBLE_INTERPRETATION
-      const answerOptionsData = (answerType === AnswerType.MULTIPLE_CHOICE || answerType === AnswerType.DOUBLE_INTERPRETATION)
+      // Prepare answer options - only include for MULTIPLE_CHOICE, DOUBLE_INTERPRETATION, and REDOUBLE_INTERPRETATION
+      const answerOptionsData = (answerType === AnswerType.MULTIPLE_CHOICE || answerType === AnswerType.DOUBLE_INTERPRETATION || answerType === AnswerType.REDOUBLE_INTERPRETATION)
         ? answerOptions.filter(opt => opt.trim().length > 0)
         : null
 
@@ -1400,6 +1421,11 @@ export default function QuestionEditor() {
               if (answerOptions.length === 0) {
                 setAnswerOptions(['Penalty', 'Take-out', 'Values'])
               }
+            } else if (newAnswerType === AnswerType.REDOUBLE_INTERPRETATION) {
+              // If switching to redouble interpretation and no options exist, use defaults
+              if (answerOptions.length === 0) {
+                setAnswerOptions(['SOS', 'Extra values', 'To play'])
+              }
             } else if (newAnswerType === AnswerType.MULTIPLE_CHOICE) {
               // If switching to multiple choice and no options exist, initialize with 2 empty options
               if (answerOptions.length === 0) {
@@ -1434,7 +1460,7 @@ export default function QuestionEditor() {
       </div>
 
       {/* Answer Options */}
-      {(answerType === AnswerType.MULTIPLE_CHOICE || answerType === AnswerType.DOUBLE_INTERPRETATION) && (
+      {(answerType === AnswerType.MULTIPLE_CHOICE || answerType === AnswerType.DOUBLE_INTERPRETATION || answerType === AnswerType.REDOUBLE_INTERPRETATION) && (
         <div style={{ marginBottom: '1.5rem' }}>
           <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
             Answer Options *
@@ -1446,6 +1472,11 @@ export default function QuestionEditor() {
             {answerType === AnswerType.DOUBLE_INTERPRETATION && (
               <span style={{ fontSize: '0.9rem', fontWeight: 'normal', color: '#666', marginLeft: '0.5rem' }}>
                 (Default: Penalty, Take-out, Values)
+              </span>
+            )}
+            {answerType === AnswerType.REDOUBLE_INTERPRETATION && (
+              <span style={{ fontSize: '0.9rem', fontWeight: 'normal', color: '#666', marginLeft: '0.5rem' }}>
+                (Default: SOS, Extra values, To play)
               </span>
             )}
           </label>
