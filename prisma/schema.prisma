@@ -61,6 +61,13 @@ enum AttemptStatus {
   COMPLETED
 }
 
+enum PartnershipInvitationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  EXPIRED
+}
+
 model User {
   id                String             @id @default(cuid())
   username          String             @unique
@@ -75,6 +82,8 @@ model User {
   createdQuizzes    Quiz[]
   answers           Answer[]
   attempts          Attempt[]
+  sentPartnershipInvitations PartnershipInvitation[] @relation("Inviter")
+  receivedPartnershipInvitations PartnershipInvitation[] @relation("Invitee")
 
   @@index([username])
   @@index([inviteCode])
@@ -97,6 +106,7 @@ model Partnership {
   updatedAt DateTime @updatedAt
   members   PartnershipMember[]
   attempts  Attempt[]
+  invitations PartnershipInvitation[]
 
   @@index([createdAt])
 }
@@ -112,6 +122,24 @@ model PartnershipMember {
   @@unique([partnershipId, userId])
   @@index([partnershipId])
   @@index([userId])
+}
+
+model PartnershipInvitation {
+  id            String                      @id @default(cuid())
+  partnershipId String
+  inviterId     String
+  inviteeId     String
+  status        PartnershipInvitationStatus @default(PENDING)
+  createdAt     DateTime                    @default(now())
+  updatedAt     DateTime                    @updatedAt
+  partnership   Partnership                 @relation(fields: [partnershipId], references: [id], onDelete: Cascade)
+  inviter       User                         @relation("Inviter", fields: [inviterId], references: [id], onDelete: Cascade)
+  invitee       User                         @relation("Invitee", fields: [inviteeId], references: [id], onDelete: Cascade)
+
+  @@unique([partnershipId, inviteeId])
+  @@index([partnershipId])
+  @@index([inviteeId])
+  @@index([status])
 }
 
 model Class {
