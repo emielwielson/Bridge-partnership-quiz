@@ -174,19 +174,34 @@ export default function QuizList() {
                     </div>
                   </div>
                   <div>
-                    <Link
-                      href={`/quizzes/${quiz.id}/start`}
-                      style={{
-                        padding: '0.75rem 1.5rem',
-                        backgroundColor: '#28a745',
-                        color: 'white',
-                        borderRadius: '8px',
-                        textDecoration: 'none',
-                        display: 'inline-block',
-                      }}
-                    >
-                      Take Quiz
-                    </Link>
+                    {quiz.state === 'PUBLISHED' ? (
+                      <Link
+                        href={`/quizzes/${quiz.id}/start`}
+                        style={{
+                          padding: '0.75rem 1.5rem',
+                          backgroundColor: '#28a745',
+                          color: 'white',
+                          borderRadius: '8px',
+                          textDecoration: 'none',
+                          display: 'inline-block',
+                        }}
+                      >
+                        Take Quiz
+                      </Link>
+                    ) : (
+                      <span
+                        style={{
+                          padding: '0.75rem 1.5rem',
+                          backgroundColor: '#e0e0e0',
+                          color: '#666',
+                          borderRadius: '8px',
+                          display: 'inline-block',
+                          cursor: 'not-allowed',
+                        }}
+                      >
+                        Draft (Cannot Take)
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>

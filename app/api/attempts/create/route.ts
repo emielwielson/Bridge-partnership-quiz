@@ -55,10 +55,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Draft quizzes are only accessible to creator
-    if (quiz.state === QuizState.DRAFT && quiz.creatorId !== user.id) {
+    // Draft quizzes cannot be taken by anyone
+    if (quiz.state === QuizState.DRAFT) {
       return NextResponse.json(
-        { error: 'You can only take published quizzes or quizzes you created' },
+        { error: 'This quiz is in draft mode and cannot be taken. Please publish the quiz first.' },
         { status: 403 }
       )
     }

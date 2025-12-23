@@ -55,6 +55,27 @@ export default function StartQuizPage() {
     return <div>Loading...</div>
   }
 
+  if (error) {
+    return (
+      <div style={{ maxWidth: '600px', margin: '0 auto', padding: '2rem' }}>
+        <div style={{ color: '#c33', marginBottom: '1rem', fontSize: '1.1rem' }}>{error}</div>
+        <Link
+          href="/quizzes"
+          style={{
+            padding: '0.75rem 1.5rem',
+            backgroundColor: '#0070f3',
+            color: 'white',
+            borderRadius: '8px',
+            textDecoration: 'none',
+            display: 'inline-block',
+          }}
+        >
+          Back to Quizzes
+        </Link>
+      </div>
+    )
+  }
+
   if (!mode) {
     return (
       <div style={{ maxWidth: '600px', margin: '0 auto', padding: '2rem' }}>
