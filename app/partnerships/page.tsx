@@ -1,5 +1,6 @@
 import PartnershipList from '@/components/partnerships/PartnershipList'
 import PartnershipInvites from '@/components/partnerships/PartnershipInvites'
+import InviteCodeDisplay from '@/components/partnerships/InviteCodeDisplay'
 import Link from 'next/link'
 import { getSessionId, validateSession } from '@/lib/auth/session'
 import { redirect } from 'next/navigation'
@@ -48,26 +49,7 @@ export default async function PartnershipsPage() {
         </Link>
       </div>
 
-      <div style={{
-        padding: '1rem',
-        backgroundColor: '#f0f7ff',
-        border: '2px solid #0070f3',
-        borderRadius: '8px',
-        marginBottom: '2rem',
-      }}>
-        <div style={{ fontSize: '0.9rem', color: '#666', marginBottom: '0.5rem' }}>
-          Your Invite Code (share this with partners):
-        </div>
-        <div style={{
-          fontSize: '1.5rem',
-          fontWeight: 'bold',
-          fontFamily: 'monospace',
-          letterSpacing: '0.1em',
-          color: '#0070f3',
-        }}>
-          {user.inviteCode}
-        </div>
-      </div>
+      <InviteCodeDisplay inviteCode={user.inviteCode} />
 
       <div>
         <PartnershipList />
