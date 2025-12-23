@@ -61,7 +61,18 @@ export default function QuestionDisplay({
     }
   }
 
-  // Get card style for a bid
+  // Get rotation angle for position
+  const getRotation = (position: string): string => {
+    switch (position) {
+      case 'N': return '0deg'
+      case 'E': return '90deg'
+      case 'S': return '180deg'
+      case 'W': return '270deg'
+      default: return '0deg'
+    }
+  }
+
+  // Get card style for a bid (all cards use North's layout, rotated)
   const getBidCardStyle = (bid: Bid, index: number, totalBids: number, position: string): React.CSSProperties => {
     const baseStyle: React.CSSProperties = {
       backgroundColor: '#fff',
@@ -76,59 +87,49 @@ export default function QuestionDisplay({
       alignItems: 'flex-start',
       justifyContent: 'flex-start',
       padding: '0.5rem',
+      transform: `rotate(${getRotation(position)})`,
+      transformOrigin: 'center',
     }
-
-    // For N/S: horizontal cards (wider)
-    // For E/W: vertical cards (taller, rotated)
-    const isHorizontal = position === 'N' || position === 'S'
 
     if (bid.bidType === BidType.CONTRACT && bid.suit) {
       return {
         ...baseStyle,
-        width: isHorizontal ? '80px' : '60px',
-        height: isHorizontal ? '50px' : '100px',
+        width: '80px',
+        height: '50px',
         color: getSuitColor(bid.suit),
         fontWeight: 'bold',
-        transform: isHorizontal ? 'none' : 'rotate(90deg)',
-        transformOrigin: 'center',
       }
     } else if (bid.bidType === BidType.DOUBLE) {
       return {
         ...baseStyle,
-        width: isHorizontal ? '50px' : '40px',
-        height: isHorizontal ? '50px' : '60px',
+        width: '50px',
+        height: '50px',
         backgroundColor: '#ef4444', // red
         color: '#fff',
         fontWeight: 'bold',
         fontSize: '1.1rem',
-        transform: isHorizontal ? 'none' : 'rotate(90deg)',
-        transformOrigin: 'center',
       }
     } else if (bid.bidType === BidType.REDOUBLE) {
       return {
         ...baseStyle,
-        width: isHorizontal ? '50px' : '40px',
-        height: isHorizontal ? '50px' : '60px',
+        width: '50px',
+        height: '50px',
         backgroundColor: '#1e40af', // dark blue
         color: '#fff',
         fontWeight: 'bold',
         fontSize: '0.9rem',
-        transform: isHorizontal ? 'none' : 'rotate(90deg)',
-        transformOrigin: 'center',
       }
     } else if (bid.bidType === BidType.PASS) {
       return {
         ...baseStyle,
-        width: isHorizontal ? '80px' : '60px',
-        height: isHorizontal ? '50px' : '100px',
+        width: '80px',
+        height: '50px',
         backgroundColor: '#22c55e', // green
         color: '#fff',
         fontWeight: 'bold',
         fontSize: '0.85rem',
         textAlign: 'left',
         padding: '0.5rem',
-        transform: isHorizontal ? 'none' : 'rotate(90deg)',
-        transformOrigin: 'center',
       }
     }
 
@@ -301,15 +302,14 @@ export default function QuestionDisplay({
               }
             }
 
-            const isHorizontal = pos === 'N' || pos === 'S'
-            
+            // All positions stack horizontally (like North), rotation handles orientation
             return (
               <div
                 key={pos}
                 style={{
                   ...positionStyle,
                   display: 'flex',
-                  flexDirection: isHorizontal ? 'row' : 'column',
+                  flexDirection: 'row',
                   alignItems: 'center',
                   justifyContent: 'flex-start',
                   gap: '0',
@@ -319,17 +319,11 @@ export default function QuestionDisplay({
                   const cardStyle = getBidCardStyle(bid, idx, positionBids.length, pos)
                   const isLastBid = lastBid && bid.sequence === lastBid.sequence
                   // Overlap cards so only left edge (with symbol) is visible
-                  // For horizontal: overlap from left (negative left margin)
-                  // For vertical: overlap from top (negative top margin)
-                  const overlap = isHorizontal ? 60 : 50 // Most of card hidden, only left/top edge visible
+                  // All cards stack horizontally, overlap from left
+                  const overlap = 60 // Most of card hidden, only left edge visible
                   
-                  let offsetStyle: React.CSSProperties = {}
-                  if (isHorizontal) {
-                    // N/S: stack horizontally, overlap from left
-                    offsetStyle = { marginLeft: idx > 0 ? `-${overlap}px` : '0' }
-                  } else {
-                    // E/W: stack vertically, overlap from top
-                    offsetStyle = { marginTop: idx > 0 ? `-${overlap}px` : '0' }
+                  const offsetStyle: React.CSSProperties = {
+                    marginLeft: idx > 0 ? `-${overlap}px` : '0'
                   }
 
                   return (
