@@ -6,6 +6,8 @@ import Link from 'next/link'
 export default function ClassResultsPage() {
   const [classes, setClasses] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadingResults, setLoadingResults] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null)
   const [results, setResults] = useState<any>(null)
 
