@@ -23,6 +23,7 @@ export async function GET(request: NextRequest) {
       select: {
         id: true,
         userId: true,
+        quizId: true,
         partnershipId: true,
         classId: true,
         partnership: {
@@ -105,7 +106,7 @@ export async function GET(request: NextRequest) {
 
     // If no questionId, get visibility for all questions in the attempt
     const quiz = await db.quiz.findUnique({
-      where: { id: attempt.quizId || '' },
+      where: { id: attempt.quizId },
       include: {
         questions: {
           orderBy: {

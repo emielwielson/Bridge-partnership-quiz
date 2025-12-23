@@ -251,7 +251,7 @@ export default function QuestionEditor() {
       }
     }
     return levels
-  }, [bids, getLastContractBid, getContractRank, suits])
+  }, [getLastContractBid, getContractRank, suits])
 
   // Get available suits for a selected level
   const getAvailableSuits = useMemo(() => {
@@ -268,7 +268,7 @@ export default function QuestionEditor() {
       const rank = getContractRank(selectedLevel, suit)
       return rank > minRank
     })
-  }, [selectedLevel, bids, getLastContractBid, getContractRank, suits])
+  }, [selectedLevel, getLastContractBid, getContractRank, suits])
 
   // Check if pass is available
   const isPassAvailable = true
