@@ -395,7 +395,7 @@ export default function QuestionDisplay({
                               flexDirection: 'column',
                               alignItems: 'flex-start',
                               justifyContent: 'center',
-                              paddingLeft: '4px',
+                              paddingLeft: '0px',
                             }}>
                               <div style={{ 
                                 fontSize: '1rem', 
