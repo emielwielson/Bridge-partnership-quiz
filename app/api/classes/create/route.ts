@@ -4,10 +4,11 @@ import { db } from '@/lib/db'
 import { generateClassLink } from '@/lib/class-link'
 import { ClassMemberRole } from '@prisma/client'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   try {
     const user = await requireAuth(request)
-export const dynamic = 'force-dynamic'
 
     const body = await request.json()
     const { name } = body

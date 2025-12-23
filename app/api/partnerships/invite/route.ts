@@ -3,9 +3,10 @@ import { requireAuth } from '@/lib/auth/middleware'
 import { db } from '@/lib/db'
 import { createPartnershipInvitation } from '@/lib/partnership-invitation'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   try {
-export const dynamic = 'force-dynamic'
 
     const user = await requireAuth(request)
     const body = await request.json()

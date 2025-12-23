@@ -3,9 +3,10 @@ import { requireAuth } from '@/lib/auth/middleware'
 import { db } from '@/lib/db'
 import { checkQuizEditability } from '@/lib/question-editability'
 
+export const dynamic = 'force-dynamic'
+
 export async function PUT(request: NextRequest) {
   try {
-export const dynamic = 'force-dynamic'
 
     const user = await requireAuth(request)
     const body = await request.json()

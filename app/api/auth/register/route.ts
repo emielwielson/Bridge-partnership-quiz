@@ -3,9 +3,10 @@ import { db } from '@/lib/db'
 import { hashPassword } from '@/lib/auth/password'
 import { generateInviteCode } from '@/lib/invite-code'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   try {
-export const dynamic = 'force-dynamic'
 
     const body = await request.json()
     const { username, password } = body

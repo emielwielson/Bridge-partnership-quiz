@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { validateAuction } from '@/lib/auction-validator'
 import { Dealer, BidType, Suit } from '@prisma/client'
 
-export async function POST(request: NextRequest) {
 export const dynamic = 'force-dynamic'
+
+export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()

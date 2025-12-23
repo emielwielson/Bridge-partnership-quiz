@@ -4,11 +4,11 @@ import { db } from '@/lib/db'
 import { validateAuction } from '@/lib/auction-validator'
 import { Dealer, BidType, Suit, Vulnerability } from '@prisma/client'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   try {
     const user = await requireAuth(request)
-export const dynamic = 'force-dynamic'
-
     const body = await request.json()
     const { questionId, dealer, vulnerability, bids } = body
 

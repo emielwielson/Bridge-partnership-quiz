@@ -6,13 +6,14 @@ import { validateAuction } from '@/lib/auction-validator'
 import { validateAnswerType } from '@/lib/answer-type-validator'
 import { Dealer, BidType, Suit, AnswerType } from '@prisma/client'
 
+export const dynamic = 'force-dynamic'
+
 export async function PUT(request: NextRequest) {
   try {
     const user = await requireAuth(request)
     const body = await request.json()
     const { questionId, prompt, answerType, auction, answerOptions } = body
 
-export const dynamic = 'force-dynamic'
 
     if (!questionId) {
       return NextResponse.json(

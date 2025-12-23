@@ -3,10 +3,10 @@ import { requireAuth } from '@/lib/auth/middleware'
 import { db } from '@/lib/db'
 import { AttemptStatus, QuizState } from '@prisma/client'
 
-export async function POST(request: NextRequest) {
-  try {
 export const dynamic = 'force-dynamic'
 
+export async function POST(request: NextRequest) {
+  try {
     const user = await requireAuth(request)
     const body = await request.json()
     const { quizId, partnershipId, classId } = body

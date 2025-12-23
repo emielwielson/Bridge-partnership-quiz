@@ -5,11 +5,12 @@ import { validateAuction } from '@/lib/auction-validator'
 import { validateAnswerType } from '@/lib/answer-type-validator'
 import { Dealer, BidType, Suit, Vulnerability, AnswerType } from '@prisma/client'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   try {
     const user = await requireAuth(request)
     const body = await request.json()
-export const dynamic = 'force-dynamic'
 
     const { quizId, auction, prompt, answerType, answerOptions } = body
 
