@@ -9,8 +9,8 @@ interface FreeAnswerInputProps {
 }
 
 const intents = ['NF', 'F', 'INV', 'GF', 'SI']
-const suits = ['♣', '♦', '♥', '♠', 'NT']
-const suitValues = ['CLUB', 'DIAMOND', 'HEART', 'SPADE', 'NO_TRUMP']
+const suits = ['♣', '♦', '♥', '♠']
+const suitValues = ['CLUB', 'DIAMOND', 'HEART', 'SPADE']
 const strengthFormats = [
   '≥ x HCP',
   'x HCP',
