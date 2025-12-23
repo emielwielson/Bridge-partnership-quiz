@@ -935,8 +935,11 @@ export default function QuestionEditor() {
                         // South: stack right to left, overlap from right
                         cardOffsetStyle = { marginRight: idx > 0 ? `-${overlap}px` : '0' }
                       } else if (pos === 'W') {
-                        // West: stack bottom to top, overlap from bottom
-                        cardOffsetStyle = { marginBottom: idx > 0 ? `-${overlap}px` : '0' }
+                        // West: stack bottom to top, second card higher than first
+                        // With column-reverse direction, cards flow up naturally
+                        // Push second card up by (cardHeight - overlap - 11) to make it appear higher
+                        // while maintaining overlap (same as East but opposite direction)
+                        cardOffsetStyle = { marginBottom: idx > 0 ? `${cardHeight - overlap - 11}px` : '0' }
                       }
                       
                       return (
