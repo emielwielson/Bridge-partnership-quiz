@@ -964,7 +964,7 @@ export default function QuestionEditor() {
                                   alignItems: 'flex-start',
                                   justifyContent: 'flex-start',
                                   paddingLeft: '0px',
-                                  paddingTop: '4px',
+                                  marginTop: '-4px',
                                 }}>
                                   <div style={{ 
                                     fontSize: '1rem', 
