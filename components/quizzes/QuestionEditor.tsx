@@ -883,14 +883,31 @@ export default function QuestionEditor() {
                   }
                 }
 
-                // All positions stack horizontally (like North), rotation handles orientation
+                // Stacking direction based on position
+                let flexDirection: 'row' | 'row-reverse' | 'column' | 'column-reverse' = 'row'
+                const overlap = 60 // Most of card hidden, only edge visible
+                
+                if (pos === 'N') {
+                  // North: stack left to right, overlap from left
+                  flexDirection = 'row'
+                } else if (pos === 'E') {
+                  // East: stack top to bottom, overlap from top
+                  flexDirection = 'column'
+                } else if (pos === 'S') {
+                  // South: stack right to left, overlap from right
+                  flexDirection = 'row-reverse'
+                } else if (pos === 'W') {
+                  // West: stack bottom to top, overlap from bottom
+                  flexDirection = 'column-reverse'
+                }
+                
                 return (
                   <div 
                     key={pos} 
                     style={{ 
                       ...positionStyle, 
                       display: 'flex', 
-                      flexDirection: 'row',
+                      flexDirection,
                       alignItems: 'center',
                       justifyContent: 'flex-start',
                       gap: '0',
@@ -899,16 +916,21 @@ export default function QuestionEditor() {
                     {positionBids.map((bid, idx) => {
                       const globalIndex = bids.findIndex(b => b === bid)
                       const cardStyle = getBidCardStyle(bid, idx, positionBids.length, pos)
-                      // Overlap cards so only left edge (with symbol) is visible
-                      // All cards stack horizontally, overlap from left
-                      const overlap = 60 // Most of card hidden, only left edge visible
                       
-                      const offsetStyle: React.CSSProperties = {
-                        marginLeft: idx > 0 ? `-${overlap}px` : '0'
+                      // Calculate offset based on position
+                      let cardOffsetStyle: React.CSSProperties = {}
+                      if (pos === 'N') {
+                        cardOffsetStyle = { marginLeft: idx > 0 ? `-${overlap}px` : '0' }
+                      } else if (pos === 'E') {
+                        cardOffsetStyle = { marginTop: idx > 0 ? `-${overlap}px` : '0' }
+                      } else if (pos === 'S') {
+                        cardOffsetStyle = { marginRight: idx > 0 ? `-${overlap}px` : '0' }
+                      } else if (pos === 'W') {
+                        cardOffsetStyle = { marginBottom: idx > 0 ? `-${overlap}px` : '0' }
                       }
                       
                       return (
-                        <div key={idx} style={{ position: 'relative', ...offsetStyle }}>
+                        <div key={idx} style={{ position: 'relative', ...cardOffsetStyle }}>
                           <button
                             type="button"
                             onClick={() => handleBidInTableClick(globalIndex)}
