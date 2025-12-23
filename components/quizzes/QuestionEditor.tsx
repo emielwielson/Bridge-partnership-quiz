@@ -631,7 +631,7 @@ export default function QuestionEditor() {
                 textAlign: 'center',
                 fontWeight: 'bold',
               }}>
-                N
+                N{dealer === Dealer.N && ' (D)'}
               </div>
               
               {/* East */}
@@ -648,7 +648,7 @@ export default function QuestionEditor() {
                 textAlign: 'center',
                 fontWeight: 'bold',
               }}>
-                E
+                E{dealer === Dealer.E && ' (D)'}
               </div>
               
               {/* South */}
@@ -665,7 +665,7 @@ export default function QuestionEditor() {
                 textAlign: 'center',
                 fontWeight: 'bold',
               }}>
-                S
+                S{dealer === Dealer.S && ' (D)'}
               </div>
               
               {/* West */}
@@ -682,7 +682,7 @@ export default function QuestionEditor() {
                 textAlign: 'center',
                 fontWeight: 'bold',
               }}>
-                W
+                W{dealer === Dealer.W && ' (D)'}
               </div>
 
               {/* Bids displayed around the table */}

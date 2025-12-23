@@ -118,7 +118,7 @@ export default function QuestionDisplay({
                 fontWeight: 'bold',
               }}
             >
-              {pos}
+              {pos}{auction.dealer === pos && ' (D)'}
             </div>
           ))}
         </div>
