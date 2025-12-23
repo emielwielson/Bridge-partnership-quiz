@@ -556,17 +556,19 @@ export default function QuestionDisplay({
       </div>
 
       {/* Question Prompt */}
-      <div
-        style={{
-          padding: '1.5rem',
-          backgroundColor: '#f5f5f5',
-          borderRadius: '8px',
-          fontSize: '1.1rem',
-          lineHeight: '1.6',
-        }}
-      >
-        {prompt}
-      </div>
+      {prompt && (
+        <div
+          style={{
+            padding: '1.5rem',
+            backgroundColor: '#f5f5f5',
+            borderRadius: '8px',
+            fontSize: '1.1rem',
+            lineHeight: '1.6',
+          }}
+        >
+          {prompt}
+        </div>
+      )}
     </div>
   )
 }

@@ -495,15 +495,29 @@ export default function ResultsPage() {
                               padding: '1.5rem',
                               border: '1px solid #e0e0e0',
                               borderRadius: '8px',
-                              backgroundColor: '#fff',
+                              backgroundColor: !result.isClassResult && question.agreed !== undefined
+                                ? (question.agreed ? '#d4edda' : '#f8d7da')
+                                : '#fff',
                             }}
                           >
-                            <div style={{ marginBottom: '1rem' }}>
-                              <h4 style={{ fontSize: '1.1rem', margin: 0, marginBottom: '0.5rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                              <h4 style={{ fontSize: '1.1rem', margin: 0 }}>
                                 Question {question.order + 1}
                               </h4>
-                              {question.prompt && (
-                                <p style={{ color: '#666', marginBottom: '1rem' }}>{question.prompt}</p>
+                              {!result.isClassResult && question.agreed !== undefined && (
+                                <div
+                                  style={{
+                                    padding: '0.5rem 1rem',
+                                    borderRadius: '4px',
+                                    backgroundColor: question.agreed ? '#d4edda' : '#f8d7da',
+                                    color: question.agreed ? '#155724' : '#721c24',
+                                    fontSize: '0.9rem',
+                                    fontWeight: '500',
+                                    border: `1px solid ${question.agreed ? '#c3e6cb' : '#f5c6cb'}`,
+                                  }}
+                                >
+                                  {question.agreed ? '✓ Agreed' : '× Disagreed'}
+                                </div>
                               )}
                             </div>
 
@@ -516,6 +530,10 @@ export default function ResultsPage() {
                                   totalQuestions={detail.questions.length}
                                 />
                               </div>
+                            )}
+
+                            {question.prompt && (
+                              <p style={{ color: '#333', marginBottom: '1rem', fontSize: '1rem', fontWeight: 'bold' }}>{question.prompt}</p>
                             )}
 
                             {result.isClassResult && question.answerDistribution && Array.isArray(question.answerDistribution) && question.answerDistribution.length > 0 ? (
