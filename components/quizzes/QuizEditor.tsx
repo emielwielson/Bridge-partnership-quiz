@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 
@@ -49,13 +49,7 @@ export default function QuizEditor() {
   const [editingTitle, setEditingTitle] = useState(false)
   const [titleValue, setTitleValue] = useState('')
 
-  useEffect(() => {
-    if (quizId) {
-      fetchQuiz()
-    }
-  }, [quizId])
-
-  const fetchQuiz = async () => {
+  const fetchQuiz = useCallback(async () => {
     try {
       const response = await fetch(`/api/quizzes/get?id=${quizId}`)
       if (!response.ok) {
@@ -80,7 +74,13 @@ export default function QuizEditor() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [quizId])
+
+  useEffect(() => {
+    if (quizId) {
+      fetchQuiz()
+    }
+  }, [quizId, fetchQuiz])
 
   const handlePublish = async () => {
     if (!confirm('Are you sure you want to publish this quiz? Once published, it cannot be deleted and editing is limited.')) {

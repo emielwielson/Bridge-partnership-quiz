@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { AnswerType } from '@prisma/client'
 import QuestionDisplay from './QuestionDisplay'
@@ -51,11 +51,7 @@ export default function QuizPlayer({ attemptId }: QuizPlayerProps) {
   const [partnershipId, setPartnershipId] = useState<string | null>(null)
   const [partnerId, setPartnerId] = useState<string | null>(null)
 
-  useEffect(() => {
-    fetchAttempt()
-  }, [attemptId])
-
-  const fetchAttempt = async () => {
+  const fetchAttempt = useCallback(async () => {
     try {
       setLoading(true)
       const response = await fetch(`/api/attempts/get?id=${attemptId}`)
@@ -94,7 +90,11 @@ export default function QuizPlayer({ attemptId }: QuizPlayerProps) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [attemptId])
+
+  useEffect(() => {
+    fetchAttempt()
+  }, [fetchAttempt])
 
   const currentQuestion = questions[currentQuestionIndex]
   const currentAnswer = answers.get(currentQuestion?.id)

@@ -74,7 +74,7 @@ export default function PartnershipList() {
   if (partnerships.length === 0) {
     return (
       <div>
-        <p>You don't have any partnerships yet.</p>
+        <p>You don&apos;t have any partnerships yet.</p>
         <Link href="/partnerships/create" style={{ color: '#0070f3', textDecoration: 'underline' }}>
           Create a partnership
         </Link>

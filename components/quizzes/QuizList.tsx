@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 
 interface Quiz {
@@ -27,11 +27,7 @@ export default function QuizList() {
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
 
-  useEffect(() => {
-    fetchQuizzes()
-  }, [search, topic, page])
-
-  const fetchQuizzes = async () => {
+  const fetchQuizzes = useCallback(async () => {
     try {
       setLoading(true)
       const params = new URLSearchParams()
@@ -52,7 +48,11 @@ export default function QuizList() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [search, topic, page])
+
+  useEffect(() => {
+    fetchQuizzes()
+  }, [fetchQuizzes])
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value)

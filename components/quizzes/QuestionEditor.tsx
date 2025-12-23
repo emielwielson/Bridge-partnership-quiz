@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Dealer, Vulnerability, BidType, Suit, AnswerType } from '@prisma/client'
 
@@ -72,11 +72,58 @@ export default function QuestionEditor() {
   
   const availableAnswerTypes = getAvailableAnswerTypes()
 
+  const fetchQuestion = useCallback(async () => {
+    if (!questionId) return
+    
+    try {
+      setLoading(true)
+      const response = await fetch(`/api/questions/get?id=${questionId}`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch question')
+      }
+      const data = await response.json()
+      const question = data.question
+
+      // Set basic question data
+      setPrompt(question.prompt)
+      setAnswerType(question.answerType)
+      
+      // Set answer options if they exist
+      if (question.answerOptions && Array.isArray(question.answerOptions)) {
+        setAnswerOptions(question.answerOptions)
+      } else if (question.answerType === AnswerType.DOUBLE_INTERPRETATION && (!question.answerOptions || !Array.isArray(question.answerOptions))) {
+        // Default options for double interpretation
+        setAnswerOptions(['Penalty', 'Take-out', 'Values'])
+      } else {
+        setAnswerOptions([])
+      }
+
+      // Set auction data
+      if (question.auction) {
+        setDealer(question.auction.dealer)
+        setVulnerability(question.auction.vulnerability)
+        
+        // Convert database bids to local Bid format
+        const auctionBids = question.auction.bids
+          .sort((a: Bid, b: Bid) => a.sequence - b.sequence)
+          .map((bid: any) => ({
+            ...bid,
+            alert: bid.alert || undefined,
+          }))
+        setBids(auctionBids)
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load question')
+    } finally {
+      setLoading(false)
+    }
+  }, [questionId])
+
   useEffect(() => {
     if (questionId) {
       fetchQuestion()
     }
-  }, [questionId])
+  }, [questionId, fetchQuestion])
 
   // Generate default prompt based on last bid
   const generateDefaultPrompt = (): string => {
@@ -121,60 +168,13 @@ export default function QuestionEditor() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bids, questionId])
 
-  const fetchQuestion = async () => {
-    try {
-      setLoading(true)
-      const response = await fetch(`/api/questions/get?id=${questionId}`)
-      if (!response.ok) {
-        throw new Error('Failed to fetch question')
-      }
-      const data = await response.json()
-      const question = data.question
 
-      // Set basic question data
-      setPrompt(question.prompt)
-      setAnswerType(question.answerType)
-      
-      // Set answer options if they exist
-      if (question.answerOptions && Array.isArray(question.answerOptions)) {
-        setAnswerOptions(question.answerOptions)
-      } else if (question.answerType === AnswerType.DOUBLE_INTERPRETATION && (!question.answerOptions || !Array.isArray(question.answerOptions))) {
-        // Default options for double interpretation
-        setAnswerOptions(['Penalty', 'Take-out', 'Values'])
-      } else {
-        setAnswerOptions([])
-      }
-
-      // Set auction data
-      if (question.auction) {
-        setDealer(question.auction.dealer)
-        setVulnerability(question.auction.vulnerability)
-        
-        // Convert database bids to local Bid format
-        const loadedBids: Bid[] = question.auction.bids.map((bid: any) => ({
-          bidType: bid.bidType,
-          level: bid.level || undefined,
-          suit: bid.suit || undefined,
-          position: bid.position,
-          sequence: bid.sequence,
-          alert: bid.alert ? {
-            meaning: bid.alert.meaning,
-          } : undefined,
-        }))
-        setBids(loadedBids)
-      }
-    } catch (err) {
-      console.error('Error fetching question:', err)
-      setError('Failed to load question')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const getNextPosition = (sequence: number): string => {
+  const getNextPosition = useCallback((sequence: number): string => {
+    const dealers = ['N', 'E', 'S', 'W']
+    const positions = ['N', 'E', 'S', 'W']
     const dealerIndex = dealers.indexOf(dealer)
     return positions[(dealerIndex + sequence) % 4]
-  }
+  }, [dealer])
 
   const isVulnerable = (position: string): boolean => {
     switch (vulnerability) {
@@ -192,14 +192,14 @@ export default function QuestionEditor() {
   }
 
   // Get the last contract bid (ignoring pass, double, redouble)
-  const getLastContractBid = (): Bid | null => {
+  const getLastContractBid = useCallback((): Bid | null => {
     for (let i = bids.length - 1; i >= 0; i--) {
       if (bids[i].bidType === BidType.CONTRACT) {
         return bids[i]
       }
     }
     return null
-  }
+  }, [bids])
 
   // Get the last non-pass bid (for double checking)
   const getLastNonPassBid = (): Bid | null => {
@@ -212,7 +212,7 @@ export default function QuestionEditor() {
   }
 
   // Get contract rank (higher number = higher rank)
-  const getContractRank = (level: number, suit: Suit): number => {
+  const getContractRank = useCallback((level: number, suit: Suit): number => {
     const suitRanks: Record<Suit, number> = {
       CLUB: 1,
       DIAMOND: 2,
@@ -221,14 +221,14 @@ export default function QuestionEditor() {
       NO_TRUMP: 5,
     }
     return level * 10 + suitRanks[suit]
-  }
+  }, [])
 
   // Check if a position is an opponent of another position
-  const isOpponent = (pos1: string, pos2: string): boolean => {
+  const isOpponent = useCallback((pos1: string, pos2: string): boolean => {
     const isNS1 = pos1 === 'N' || pos1 === 'S'
     const isNS2 = pos2 === 'N' || pos2 === 'S'
     return isNS1 !== isNS2
-  }
+  }, [])
 
   // Get available levels for contract bids
   const getAvailableLevels = useMemo(() => {
@@ -251,7 +251,7 @@ export default function QuestionEditor() {
       }
     }
     return levels
-  }, [bids])
+  }, [bids, getLastContractBid, getContractRank])
 
   // Get available suits for a selected level
   const getAvailableSuits = useMemo(() => {
@@ -268,7 +268,7 @@ export default function QuestionEditor() {
       const rank = getContractRank(selectedLevel, suit)
       return rank > minRank
     })
-  }, [selectedLevel, bids])
+  }, [selectedLevel, bids, getLastContractBid, getContractRank])
 
   // Check if pass is available
   const isPassAvailable = true
@@ -280,7 +280,7 @@ export default function QuestionEditor() {
     
     const currentPosition = getNextPosition(bids.length)
     return isOpponent(currentPosition, lastContractBid.position)
-  }, [bids, dealer])
+  }, [bids, dealer, getLastContractBid, getNextPosition, isOpponent])
 
   // Check if redouble is available
   const isRedoubleAvailable = useMemo(() => {
