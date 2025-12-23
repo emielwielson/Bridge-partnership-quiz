@@ -963,7 +963,7 @@ export default function QuestionEditor() {
                                   flexDirection: 'column',
                                   alignItems: 'flex-start',
                                   justifyContent: 'center',
-                                  paddingLeft: '8px',
+                                  paddingLeft: '4px',
                                 }}>
                                   <div style={{ 
                                     fontSize: '1rem', 
@@ -976,7 +976,7 @@ export default function QuestionEditor() {
                                     {bid.level}
                                   </div>
                                   <div style={{ 
-                                    fontSize: '1.2rem', 
+                                    fontSize: bid.suit === Suit.NO_TRUMP ? '0.9rem' : '1.2rem', 
                                     fontWeight: 'bold',
                                     lineHeight: '1',
                                     textAlign: 'center',
