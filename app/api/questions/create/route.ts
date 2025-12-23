@@ -73,7 +73,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate auction
-    const formattedBids = auction.bids.map((bid: any) => ({
+    type FormattedBid = {
+      bidType: BidType
+      level: number | null
+      suit: Suit | undefined
+      position: string
+      sequence: number
+    }
+    
+    const formattedBids: FormattedBid[] = auction.bids.map((bid: any) => ({
       bidType: bid.bidType as BidType,
       level: bid.level,
       suit: bid.suit as Suit | undefined,
@@ -148,8 +156,8 @@ export async function POST(request: NextRequest) {
             create: {
               dealer: auction.dealer as Dealer,
               vulnerability: auction.vulnerability as Vulnerability,
-              bids: {
-                create: formattedBids.map(bid => ({
+               bids: {
+                 create: formattedBids.map((bid: FormattedBid) => ({
                   bidType: bid.bidType,
                   level: bid.level,
                   suit: bid.suit,

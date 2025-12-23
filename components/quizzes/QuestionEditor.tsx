@@ -37,7 +37,7 @@ export default function QuestionEditor() {
   const positions = ['N', 'E', 'S', 'W']
   const dealers: Dealer[] = [Dealer.N, Dealer.E, Dealer.S, Dealer.W]
   const vulnerabilities: Vulnerability[] = [Vulnerability.NONE, Vulnerability.NS, Vulnerability.EW, Vulnerability.ALL]
-  const suits: Suit[] = [Suit.CLUB, Suit.DIAMOND, Suit.HEART, Suit.SPADE, Suit.NO_TRUMP]
+  const suits: Suit[] = useMemo(() => [Suit.CLUB, Suit.DIAMOND, Suit.HEART, Suit.SPADE, Suit.NO_TRUMP], [])
   
   // Get available answer types based on last bid
   const getAvailableAnswerTypes = (): AnswerType[] => {
