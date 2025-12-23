@@ -8,6 +8,7 @@ export default function PartnershipResultsPage() {
   const router = useRouter()
   const [partners, setPartners] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(null)
   const [results, setResults] = useState<any>(null)
 
