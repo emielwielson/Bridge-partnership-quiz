@@ -10,6 +10,10 @@ interface Class {
   createdAt: string
   role: string
   joinedAt: string
+  teacher: {
+    id: string
+    username: string
+  }
   members: Array<{
     user: {
       id: string
@@ -119,6 +123,7 @@ export default function ClassList() {
                   <strong>{classData.name}</strong>
                 </div>
                 <div style={{ fontSize: '0.9rem', color: '#666', marginBottom: '0.5rem' }}>
+                  Teacher: {classData.teacher.username} |{' '}
                   {classData.activeQuiz ? `Active Quiz: ${classData.activeQuiz.title}` : 'No active quiz'}
                 </div>
                 <Link

@@ -32,6 +32,9 @@ export default function ClassDashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [userRole, setUserRole] = useState<'TEACHER' | 'STUDENT' | null>(null)
+  const [editingName, setEditingName] = useState(false)
+  const [newName, setNewName] = useState('')
+  const [removingMember, setRemovingMember] = useState<string | null>(null)
 
   const fetchClassData = useCallback(async () => {
     try {
@@ -73,6 +76,78 @@ export default function ClassDashboard() {
     }
   }
 
+  const handleEditName = () => {
+    if (classData) {
+      setNewName(classData.name)
+      setEditingName(true)
+    }
+  }
+
+  const handleSaveName = async () => {
+    if (!classData || !newName.trim()) {
+      return
+    }
+
+    try {
+      const response = await fetch('/api/classes/update', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          classId: classData.id,
+          name: newName.trim(),
+        }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to update class name')
+      }
+
+      const data = await response.json()
+      setClassData(data.class)
+      setEditingName(false)
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to update class name')
+    }
+  }
+
+  const handleCancelEdit = () => {
+    setEditingName(false)
+    setNewName('')
+  }
+
+  const handleRemoveMember = async (memberUserId: string) => {
+    if (!classData) return
+
+    if (!confirm('Are you sure you want to remove this member from the class?')) {
+      return
+    }
+
+    try {
+      setRemovingMember(memberUserId)
+      const response = await fetch(
+        `/api/classes/remove-member?classId=${classData.id}&memberUserId=${memberUserId}`,
+        {
+          method: 'DELETE',
+        }
+      )
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to remove member')
+      }
+
+      const data = await response.json()
+      setClassData(data.class)
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to remove member')
+    } finally {
+      setRemovingMember(null)
+    }
+  }
+
   if (loading) {
     return <div>Loading class...</div>
   }
@@ -83,7 +158,72 @@ export default function ClassDashboard() {
 
   return (
     <div>
-      <h1 style={{ fontSize: '2rem', marginBottom: '1rem' }}>{classData.name}</h1>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+        {editingName ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1 }}>
+            <input
+              type="text"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              style={{
+                fontSize: '2rem',
+                fontWeight: 'bold',
+                padding: '0.5rem',
+                border: '1px solid #ddd',
+                borderRadius: '4px',
+                flex: 1,
+              }}
+              autoFocus
+            />
+            <button
+              onClick={handleSaveName}
+              style={{
+                padding: '0.5rem 1rem',
+                backgroundColor: '#0070f3',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+              }}
+            >
+              Save
+            </button>
+            <button
+              onClick={handleCancelEdit}
+              style={{
+                padding: '0.5rem 1rem',
+                backgroundColor: '#666',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <>
+            <h1 style={{ fontSize: '2rem', margin: 0, flex: 1 }}>{classData.name}</h1>
+            {userRole === 'TEACHER' && (
+              <button
+                onClick={handleEditName}
+                style={{
+                  padding: '0.5rem 1rem',
+                  backgroundColor: '#666',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '0.9rem',
+                }}
+              >
+                Edit Name
+              </button>
+            )}
+          </>
+        )}
+      </div>
       
       {userRole === 'TEACHER' && (
         <div style={{ marginBottom: '2rem' }}>
@@ -130,23 +270,94 @@ export default function ClassDashboard() {
       
       <div style={{ marginBottom: '2rem' }}>
         <h2 style={{ fontSize: '1.5rem', marginBottom: '0.75rem' }}>Class Members</h2>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          {classData.members.map((member) => (
-            <div key={member.user.id} style={{ padding: '0.5rem', backgroundColor: '#f5f5f5', borderRadius: '4px' }}>
-              {member.user.username} {member.role === 'TEACHER' && '(Teacher)'}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          {/* Teacher Section */}
+          <div>
+            <h3 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem', color: '#666' }}>Teacher</h3>
+            {classData.members
+              .filter((member) => member.role === 'TEACHER')
+              .map((member) => (
+                <div
+                  key={member.user.id}
+                  style={{
+                    padding: '1rem',
+                    backgroundColor: '#e3f2fd',
+                    border: '2px solid #2196f3',
+                    borderRadius: '8px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <span style={{ fontSize: '1.1rem', fontWeight: '600', color: '#1976d2' }}>
+                      👨‍🏫 {member.user.username}
+                    </span>
+                    <span
+                      style={{
+                        padding: '0.25rem 0.75rem',
+                        backgroundColor: '#2196f3',
+                        color: 'white',
+                        borderRadius: '12px',
+                        fontSize: '0.75rem',
+                        fontWeight: '600',
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      Teacher
+                    </span>
+                  </div>
+                </div>
+              ))}
+          </div>
+
+          {/* Students Section */}
+          {classData.members.filter((member) => member.role === 'STUDENT').length > 0 && (
+            <div>
+              <h3 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem', color: '#666' }}>
+                Students ({classData.members.filter((member) => member.role === 'STUDENT').length})
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {classData.members
+                  .filter((member) => member.role === 'STUDENT')
+                  .map((member) => (
+                    <div
+                      key={member.user.id}
+                      style={{
+                        padding: '0.75rem',
+                        backgroundColor: '#f5f5f5',
+                        borderRadius: '4px',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <span style={{ fontSize: '0.95rem' }}>{member.user.username}</span>
+                      {userRole === 'TEACHER' && (
+                        <button
+                          onClick={() => handleRemoveMember(member.user.id)}
+                          disabled={removingMember === member.user.id}
+                          style={{
+                            padding: '0.25rem 0.75rem',
+                            backgroundColor: '#dc3545',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '4px',
+                            cursor: removingMember === member.user.id ? 'not-allowed' : 'pointer',
+                            fontSize: '0.85rem',
+                            opacity: removingMember === member.user.id ? 0.6 : 1,
+                          }}
+                        >
+                          {removingMember === member.user.id ? 'Removing...' : 'Remove'}
+                        </button>
+                      )}
+                    </div>
+                  ))}
+              </div>
             </div>
-          ))}
+          )}
         </div>
       </div>
-
-      {userRole === 'TEACHER' && (
-        <div>
-          <h2 style={{ fontSize: '1.5rem', marginBottom: '0.75rem' }}>Teacher Controls</h2>
-          <p style={{ color: '#666', marginBottom: '1rem' }}>
-            Teacher features (start quiz, set active quiz, view results) coming soon...
-          </p>
-        </div>
-      )}
 
       {userRole === 'STUDENT' && (
         <div>
