@@ -631,9 +631,10 @@ export default function QuestionEditor() {
       borderRadius: '6px',
       boxShadow: '0 2px 4px rgba(0,0,0,0.2), 0 1px 2px rgba(0,0,0,0.1)',
       position: 'relative',
-      zIndex: totalBids - index, // Newer cards on top
+      zIndex: index + 1, // First card on bottom (lower z-index)
       transition: 'all 0.2s ease',
       display: 'flex',
+      flexDirection: 'column',
       alignItems: 'flex-start',
       justifyContent: 'flex-start',
       padding: '0.5rem',
@@ -658,9 +659,6 @@ export default function QuestionEditor() {
         ...baseStyle,
         width: isHorizontal ? '50px' : '40px',
         height: isHorizontal ? '50px' : '60px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
         backgroundColor: '#ef4444', // red
         color: '#fff',
         fontWeight: 'bold',
@@ -673,9 +671,6 @@ export default function QuestionEditor() {
         ...baseStyle,
         width: isHorizontal ? '50px' : '40px',
         height: isHorizontal ? '50px' : '60px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
         backgroundColor: '#1e40af', // dark blue
         color: '#fff',
         fontWeight: 'bold',
@@ -688,15 +683,12 @@ export default function QuestionEditor() {
         ...baseStyle,
         width: isHorizontal ? '80px' : '60px',
         height: isHorizontal ? '50px' : '100px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
         backgroundColor: '#22c55e', // green
         color: '#fff',
         fontWeight: 'bold',
         fontSize: '0.85rem',
-        textAlign: 'center',
-        padding: '0.25rem',
+        textAlign: 'left',
+        padding: '0.5rem',
         transform: isHorizontal ? 'none' : 'rotate(90deg)',
         transformOrigin: 'center',
       }
@@ -937,9 +929,17 @@ export default function QuestionEditor() {
                                 <div style={{ 
                                   fontSize: '1rem', 
                                   fontWeight: 'bold',
-                                  lineHeight: '1.2',
+                                  lineHeight: '1',
+                                  marginBottom: '0.2rem',
                                 }}>
-                                  {bid.level}{suitSymbols[bid.suit]}
+                                  {bid.level}
+                                </div>
+                                <div style={{ 
+                                  fontSize: '1.2rem', 
+                                  fontWeight: 'bold',
+                                  lineHeight: '1',
+                                }}>
+                                  {suitSymbols[bid.suit]}
                                 </div>
                                 {bid.alert && (
                                   <div style={{
@@ -954,9 +954,15 @@ export default function QuestionEditor() {
                                 )}
                               </>
                             )}
-                            {bid.bidType === BidType.DOUBLE && 'X'}
-                            {bid.bidType === BidType.REDOUBLE && 'XX'}
-                            {bid.bidType === BidType.PASS && 'PASS'}
+                            {bid.bidType === BidType.DOUBLE && (
+                              <div style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>X</div>
+                            )}
+                            {bid.bidType === BidType.REDOUBLE && (
+                              <div style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>XX</div>
+                            )}
+                            {bid.bidType === BidType.PASS && (
+                              <div style={{ fontSize: '0.85rem', fontWeight: 'bold', lineHeight: '1.2' }}>PASS</div>
+                            )}
                           </button>
                           {editingAlert === globalIndex && (
                             <div
