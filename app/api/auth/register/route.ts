@@ -69,8 +69,29 @@ export async function POST(request: NextRequest) {
     )
   } catch (error) {
     console.error('Registration error:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    
+    // Check for common database connection errors
+    if (errorMessage.includes('Can\'t reach database') || 
+        errorMessage.includes('P1001') ||
+        errorMessage.includes('connection') ||
+        errorMessage.includes('DATABASE_URL')) {
+      console.error('Database connection error detected')
+      return NextResponse.json(
+        { 
+          error: 'Database connection failed. Please check your DATABASE_URL environment variable.',
+          details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+        },
+        { status: 500 }
+      )
+    }
+    
+    // Return error details in development, generic message in production
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { 
+        error: 'Internal server error',
+        details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+      },
       { status: 500 }
     )
   }
