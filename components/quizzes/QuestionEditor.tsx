@@ -920,23 +920,22 @@ export default function QuestionEditor() {
                       // Calculate offset based on position
                       // Cards overlap so only the edge with the symbol is visible
                       let cardOffsetStyle: React.CSSProperties = {}
-                      const cardHeight = 50 // Height of the card
                       if (pos === 'N') {
                         // North: stack left to right, overlap from left
                         cardOffsetStyle = { marginLeft: idx > 0 ? `-${overlap}px` : '0' }
                       } else if (pos === 'E') {
                         // East: stack top to bottom, second card lower than first
                         // With column direction, cards flow down naturally
-                        // Use positive margin to push down, but subtract overlap to maintain overlap
-                        cardOffsetStyle = { marginTop: idx > 0 ? `${cardHeight - overlap}px` : '0' }
+                        // Use negative margin-top to create overlap, same amount as North/South
+                        cardOffsetStyle = { marginTop: idx > 0 ? `-${overlap}px` : '0' }
                       } else if (pos === 'S') {
                         // South: stack right to left, overlap from right
                         cardOffsetStyle = { marginRight: idx > 0 ? `-${overlap}px` : '0' }
                       } else if (pos === 'W') {
                         // West: stack bottom to top, second card higher than first
                         // With column-reverse direction, cards flow up naturally
-                        // Use positive margin to push up, but subtract overlap to maintain overlap
-                        cardOffsetStyle = { marginBottom: idx > 0 ? `${cardHeight - overlap}px` : '0' }
+                        // Use negative margin-bottom to create overlap, same amount as North/South
+                        cardOffsetStyle = { marginBottom: idx > 0 ? `-${overlap}px` : '0' }
                       }
                       
                       return (
