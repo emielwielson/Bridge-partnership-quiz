@@ -925,8 +925,8 @@ export default function QuestionEditor() {
                       if (pos === 'N') {
                         // North: stack left to right, second card further right than first
                         // Use more negative margin to create more overlap (move second card more to the left)
-                        // Increase overlap by reducing the offset (making it more negative) - about 3x more
-                        cardOffsetStyle = { marginLeft: idx > 0 ? `${cardHeight - overlap - 60}px` : '0' }
+                        // Reduced from -60 to -35 for better balance
+                        cardOffsetStyle = { marginLeft: idx > 0 ? `${cardHeight - overlap - 35}px` : '0' }
                       } else if (pos === 'E') {
                         // East: stack top to bottom, second card lower than first
                         // With column direction, cards flow down naturally
