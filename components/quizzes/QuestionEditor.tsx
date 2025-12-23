@@ -311,13 +311,38 @@ export default function QuestionEditor() {
     // Cannot double if there are no bids
     if (bids.length === 0) return false
     
-    // Cannot double after a redouble
+    // Cannot double after a redouble (even if passes follow)
     const lastBid = bids[bids.length - 1]
     if (lastBid.bidType === BidType.REDOUBLE) return false
     
     // Need a contract bid to double
     const lastContractBid = getLastContractBid()
     if (!lastContractBid) return false
+    
+    // Check if the last contract bid has been doubled and redoubled
+    // If so, it cannot be doubled again
+    const contractBidIndex = bids.findIndex(b => b === lastContractBid)
+    if (contractBidIndex >= 0) {
+      // Look for double and redouble after this contract bid
+      let foundDouble = false
+      let foundRedouble = false
+      
+      for (let i = contractBidIndex + 1; i < bids.length; i++) {
+        if (bids[i].bidType === BidType.DOUBLE) {
+          foundDouble = true
+        } else if (bids[i].bidType === BidType.REDOUBLE && foundDouble) {
+          foundRedouble = true
+          break
+        } else if (bids[i].bidType === BidType.CONTRACT) {
+          // New contract bid resets the double/redouble sequence
+          foundDouble = false
+          foundRedouble = false
+        }
+      }
+      
+      // If the contract was doubled and redoubled, cannot double again
+      if (foundRedouble) return false
+    }
     
     // Can only double opponent's contract bid
     const currentPosition = getNextPosition(bids.length)
