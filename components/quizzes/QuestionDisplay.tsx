@@ -382,13 +382,67 @@ export default function QuestionDisplay({
                           </>
                         )}
                         {bid.bidType === BidType.DOUBLE && (
-                          <div style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>X</div>
+                          <div style={{ 
+                            fontSize: '1.1rem', 
+                            fontWeight: 'bold',
+                            lineHeight: '1',
+                          }}>
+                            X
+                          </div>
                         )}
                         {bid.bidType === BidType.REDOUBLE && (
-                          <div style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>XX</div>
+                          <>
+                            <div style={{ 
+                              fontSize: '0.9rem', 
+                              fontWeight: 'bold',
+                              lineHeight: '1',
+                              marginBottom: '0.2rem',
+                            }}>
+                              X
+                            </div>
+                            <div style={{ 
+                              fontSize: '0.9rem', 
+                              fontWeight: 'bold',
+                              lineHeight: '1',
+                            }}>
+                              X
+                            </div>
+                          </>
                         )}
                         {bid.bidType === BidType.PASS && (
-                          <div style={{ fontSize: '0.85rem', fontWeight: 'bold', lineHeight: '1.2' }}>PASS</div>
+                          <>
+                            <div style={{ 
+                              fontSize: '0.85rem', 
+                              fontWeight: 'bold',
+                              lineHeight: '1',
+                              marginBottom: '0.1rem',
+                            }}>
+                              P
+                            </div>
+                            <div style={{ 
+                              fontSize: '0.85rem', 
+                              fontWeight: 'bold',
+                              lineHeight: '1',
+                              marginBottom: '0.1rem',
+                            }}>
+                              A
+                            </div>
+                            <div style={{ 
+                              fontSize: '0.85rem', 
+                              fontWeight: 'bold',
+                              lineHeight: '1',
+                              marginBottom: '0.1rem',
+                            }}>
+                              S
+                            </div>
+                            <div style={{ 
+                              fontSize: '0.85rem', 
+                              fontWeight: 'bold',
+                              lineHeight: '1',
+                            }}>
+                              S
+                            </div>
+                          </>
                         )}
                       </div>
                       {bid.alert && hoveredBidId === `${bid.sequence}-${pos}` && (
