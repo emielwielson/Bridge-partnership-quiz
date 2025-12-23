@@ -918,15 +918,30 @@ export default function QuestionEditor() {
                       const cardStyle = getBidCardStyle(bid, idx, positionBids.length, pos)
                       
                       // Calculate offset based on position
+                      // Cards overlap so only the edge with the symbol is visible
                       let cardOffsetStyle: React.CSSProperties = {}
                       if (pos === 'N') {
+                        // North: stack left to right, overlap from left
                         cardOffsetStyle = { marginLeft: idx > 0 ? `-${overlap}px` : '0' }
                       } else if (pos === 'E') {
-                        cardOffsetStyle = { marginTop: idx > 0 ? `-${overlap}px` : '0' }
+                        // East: stack top to bottom, second card lower than first
+                        // Cards naturally flow down with column, use negative margin-top to overlap
+                        // But we want second card visually lower, so we need to account for card height
+                        const cardHeight = 50 // Height of the card
+                        cardOffsetStyle = { 
+                          marginTop: idx > 0 ? `${cardHeight - overlap}px` : '0' 
+                        }
                       } else if (pos === 'S') {
+                        // South: stack right to left, overlap from right
                         cardOffsetStyle = { marginRight: idx > 0 ? `-${overlap}px` : '0' }
                       } else if (pos === 'W') {
-                        cardOffsetStyle = { marginBottom: idx > 0 ? `-${overlap}px` : '0' }
+                        // West: stack bottom to top, second card higher than first
+                        // Cards naturally flow up with column-reverse, use negative margin-bottom to overlap
+                        // But we want second card visually higher, so we need to account for card height
+                        const cardHeight = 50 // Height of the card
+                        cardOffsetStyle = { 
+                          marginBottom: idx > 0 ? `${cardHeight - overlap}px` : '0' 
+                        }
                       }
                       
                       return (
