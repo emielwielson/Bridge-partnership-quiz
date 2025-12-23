@@ -432,10 +432,29 @@ export default function QuestionDisplay({
                           </>
                         )}
                         {bid.bidType === BidType.DOUBLE && (
-                          <div style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>X</div>
+                          <div style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'flex-start',
+                            justifyContent: 'flex-start',
+                            paddingLeft: '0px',
+                            marginTop: '-4px',
+                          }}>
+                            <div style={{ fontSize: '1.1rem', fontWeight: 'bold', lineHeight: '1' }}>X</div>
+                          </div>
                         )}
                         {bid.bidType === BidType.REDOUBLE && (
-                          <div style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>XX</div>
+                          <div style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'flex-start',
+                            justifyContent: 'flex-start',
+                            paddingLeft: '0px',
+                            marginTop: '-4px',
+                          }}>
+                            <div style={{ fontSize: '0.9rem', fontWeight: 'bold', lineHeight: '1', marginBottom: '0.02rem' }}>X</div>
+                            <div style={{ fontSize: '0.9rem', fontWeight: 'bold', lineHeight: '1' }}>X</div>
+                          </div>
                         )}
                         {bid.bidType === BidType.PASS && (
                           <div style={{
