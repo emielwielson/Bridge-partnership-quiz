@@ -345,7 +345,7 @@ export default function QuestionDisplay({
                     // North: stack left to right, second card further right than first
                     // Use cardWidth for horizontal stacking (not cardHeight)
                     // Increased negative margin to move second card more to the left
-                    cardOffsetStyle = { marginLeft: idx > 0 ? `${cardWidth - overlap - 45}px` : '0' }
+                    cardOffsetStyle = { marginLeft: idx > 0 ? `${cardWidth - overlap - 55}px` : '0' }
                   } else if (pos === 'E') {
                     // East: stack top to bottom, second card lower than first
                     // With column direction, cards flow down naturally
