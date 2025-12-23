@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-export const dynamic = 'force-dynamic'
 import { requireAuth } from '@/lib/auth/middleware'
-export const dynamic = 'force-dynamic'
 import { db } from '@/lib/db'
-export const dynamic = 'force-dynamic'
 import { QuizState } from '@prisma/client'
 
-export const dynamic = 'force-dynamic'
 export async function POST(request: NextRequest) {
   try {
+export const dynamic = 'force-dynamic'
+
     const user = await requireAuth(request)
     const body = await request.json()
     const { title, description, topic } = body

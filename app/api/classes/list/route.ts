@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-export const dynamic = 'force-dynamic'
 import { requireAuth } from '@/lib/auth/middleware'
-export const dynamic = 'force-dynamic'
 import { db } from '@/lib/db'
-export const dynamic = 'force-dynamic'
 import { ClassMemberRole } from '@prisma/client'
 
-export const dynamic = 'force-dynamic'
 export async function GET(request: NextRequest) {
   try {
+export const dynamic = 'force-dynamic'
+
     const user = await requireAuth(request)
 
     // Get all classes where user is a member

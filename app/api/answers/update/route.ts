@@ -1,17 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-export const dynamic = 'force-dynamic'
 import { requireAuth } from '@/lib/auth/middleware'
-export const dynamic = 'force-dynamic'
 import { db } from '@/lib/db'
-export const dynamic = 'force-dynamic'
 import { AnswerType, AttemptStatus } from '@prisma/client'
-export const dynamic = 'force-dynamic'
 import { checkAnswerEditability } from '@/lib/answer-visibility'
 
-export const dynamic = 'force-dynamic'
 /**
  * Validate answer data structure based on answer type
  */
+export const dynamic = 'force-dynamic'
+
 function validateAnswerData(answerType: AnswerType, answerData: any): {
   valid: boolean
   error?: string

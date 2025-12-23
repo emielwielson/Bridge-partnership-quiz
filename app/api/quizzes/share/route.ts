@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-export const dynamic = 'force-dynamic'
 import { requireAuth } from '@/lib/auth/middleware'
-export const dynamic = 'force-dynamic'
 import { db } from '@/lib/db'
-export const dynamic = 'force-dynamic'
 import { generateQuizLink } from '@/lib/quiz-link'
 
-export const dynamic = 'force-dynamic'
 export async function POST(request: NextRequest) {
   try {
+export const dynamic = 'force-dynamic'
+
     const user = await requireAuth(request)
     const body = await request.json()
     const { quizId } = body

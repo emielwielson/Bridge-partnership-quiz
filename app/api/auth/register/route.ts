@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-export const dynamic = 'force-dynamic'
 import { db } from '@/lib/db'
-export const dynamic = 'force-dynamic'
 import { hashPassword } from '@/lib/auth/password'
-export const dynamic = 'force-dynamic'
 import { generateInviteCode } from '@/lib/invite-code'
 
-export const dynamic = 'force-dynamic'
 export async function POST(request: NextRequest) {
   try {
+export const dynamic = 'force-dynamic'
+
     const body = await request.json()
     const { username, password } = body
 

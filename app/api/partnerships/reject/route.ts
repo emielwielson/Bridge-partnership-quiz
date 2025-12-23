@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-export const dynamic = 'force-dynamic'
 import { requireAuth } from '@/lib/auth/middleware'
-export const dynamic = 'force-dynamic'
 import { rejectPartnershipInvitation } from '@/lib/partnership-invitation'
 
-export const dynamic = 'force-dynamic'
 export async function POST(request: NextRequest) {
+export const dynamic = 'force-dynamic'
+
   try {
     const user = await requireAuth(request)
     const body = await request.json()

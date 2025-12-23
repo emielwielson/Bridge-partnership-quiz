@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-export const dynamic = 'force-dynamic'
 import { requireAuth } from '@/lib/auth/middleware'
-export const dynamic = 'force-dynamic'
 import { db } from '@/lib/db'
-export const dynamic = 'force-dynamic'
 import { calculateAgreement } from '@/lib/agreement-scorer'
 
-export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
+export const dynamic = 'force-dynamic'
+
   try {
     const user = await requireAuth(request)
     const { searchParams } = new URL(request.url)

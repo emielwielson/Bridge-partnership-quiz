@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-export const dynamic = 'force-dynamic'
 import { getSessionId, validateSession } from '@/lib/auth/session'
-export const dynamic = 'force-dynamic'
 import { db } from '@/lib/db'
+
 
 export const dynamic = 'force-dynamic'
 

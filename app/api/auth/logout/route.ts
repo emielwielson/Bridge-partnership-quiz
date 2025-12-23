@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-export const dynamic = 'force-dynamic'
 import { getSessionId, destroySession } from '@/lib/auth/session'
 
 export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   try {
     const sessionId = await getSessionId()
