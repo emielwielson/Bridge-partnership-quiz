@@ -134,7 +134,7 @@ export default function QuestionEditor() {
     }
   }, [questionId, fetchQuestion])
 
-  // Generate default prompt based on last bid
+  // Generate default prompt based on last bid and answer type
   const generateDefaultPrompt = (): string => {
     if (bids.length === 0) {
       return ''
@@ -162,20 +162,26 @@ export default function QuestionEditor() {
       bidText = lastBid.bidType
     }
     
+    // Use "Is x by y forcing?" for forcing/non-forcing answer type
+    if (answerType === AnswerType.FORCING_NON_FORCING) {
+      return `Is ${bidText} by ${lastBid.position} forcing?`
+    }
+    
+    // Default prompt for other answer types
     return `What does ${bidText} by ${lastBid.position} mean?`
   }
 
-  // Update prompt to default when bids change (only if prompt is empty or matches previous default)
+  // Update prompt to default when bids or answer type change (only if prompt is empty or matches previous default)
   useEffect(() => {
     if (!questionId && bids.length > 0) {
       const defaultPrompt = generateDefaultPrompt()
       // Only update if prompt is empty or matches a previous default pattern
-      if (!prompt || prompt.match(/^What does .+ by [NESW] mean\?$/)) {
+      if (!prompt || prompt.match(/^What does .+ by [NESW] mean\?$/) || prompt.match(/^Is .+ by [NESW] forcing\?$/)) {
         setPrompt(defaultPrompt)
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bids, questionId])
+  }, [bids, answerType, questionId])
 
 
   const getNextPosition = useCallback((sequence: number): string => {
