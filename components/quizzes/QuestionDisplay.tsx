@@ -473,10 +473,11 @@ export default function QuestionDisplay({
             const positionBids = bidsByPosition[pos]
             let positionStyle: React.CSSProperties = {}
             
+            // Equal spacing for all positions - 100px from edges
             if (pos === 'N') {
               positionStyle = {
                 position: 'absolute',
-                top: '60px',
+                top: '100px',
                 left: '50%',
                 transform: 'translateX(-50%)',
               }
@@ -490,7 +491,7 @@ export default function QuestionDisplay({
             } else if (pos === 'S') {
               positionStyle = {
                 position: 'absolute',
-                bottom: '60px',
+                bottom: '100px',
                 left: '50%',
                 transform: 'translateX(-50%)',
               }
@@ -505,7 +506,6 @@ export default function QuestionDisplay({
 
             // Stacking direction based on position
             let flexDirection: 'row' | 'row-reverse' | 'column' | 'column-reverse' = 'row'
-            const overlap = 60 // Most of card hidden, only edge visible
             
             if (pos === 'N') {
               // North: stack left to right, overlap from left
@@ -529,7 +529,8 @@ export default function QuestionDisplay({
                   display: 'flex',
                   flexDirection,
                   alignItems: 'center',
-                  justifyContent: 'flex-start',
+                  justifyContent: pos === 'N' || pos === 'S' ? 'center' : 'flex-start',
+                  alignContent: pos === 'E' || pos === 'W' ? 'center' : 'flex-start',
                   gap: '0',
                 }}
               >
@@ -539,30 +540,52 @@ export default function QuestionDisplay({
                   
                   // Calculate offset based on position
                   // Cards overlap so only the edge with the symbol is visible
+                  // First card should always be centered, additional cards stack from there
                   let cardOffsetStyle: React.CSSProperties = {}
                   const cardHeight = 50 // Height of the card (for East/West)
                   const cardWidth = 80 // Width of the card (for North/South)
+                  const overlap = 60 // Most of card hidden, only edge visible
+                  
                   if (pos === 'N') {
-                    // North: stack left to right, second card further right than first
-                    // Use cardWidth for horizontal stacking (not cardHeight)
-                    // Increased negative margin to move second card more to the left
-                    cardOffsetStyle = { marginLeft: idx > 0 ? `${cardWidth - overlap - 72}px` : '0' }
+                    // North: stack left to right from center
+                    // First card centered, additional cards stack to the right
+                    if (idx === 0) {
+                      // First card: center it by offsetting left by half its width
+                      cardOffsetStyle = { marginLeft: `-${cardWidth / 2}px` }
+                    } else {
+                      // Subsequent cards: stack to the right with overlap
+                      cardOffsetStyle = { marginLeft: `${cardWidth - overlap}px` }
+                    }
                   } else if (pos === 'E') {
-                    // East: stack top to bottom, second card lower than first
-                    // With column direction, cards flow down naturally
-                    // Pull second card up by (cardHeight - overlap - 11) to make it appear higher
-                    // while maintaining overlap
-                    cardOffsetStyle = { marginTop: idx > 0 ? `${cardHeight - overlap - 11}px` : '0' }
+                    // East: stack top to bottom from center
+                    // First card centered, additional cards stack below
+                    if (idx === 0) {
+                      // First card: center it by offsetting up by half its height
+                      cardOffsetStyle = { marginTop: `-${cardHeight / 2}px` }
+                    } else {
+                      // Subsequent cards: stack below with overlap
+                      cardOffsetStyle = { marginTop: `${cardHeight - overlap}px` }
+                    }
                   } else if (pos === 'S') {
-                    // South: stack right to left, second card further left than first
-                    // Use same settings as North for consistent overlap
-                    cardOffsetStyle = { marginRight: idx > 0 ? `${cardWidth - overlap - 72}px` : '0' }
+                    // South: stack right to left from center (row-reverse)
+                    // First card centered, additional cards stack to the left
+                    if (idx === 0) {
+                      // First card: center it by offsetting right by half its width
+                      cardOffsetStyle = { marginRight: `-${cardWidth / 2}px` }
+                    } else {
+                      // Subsequent cards: stack to the left with overlap
+                      cardOffsetStyle = { marginRight: `${cardWidth - overlap}px` }
+                    }
                   } else if (pos === 'W') {
-                    // West: stack bottom to top, second card higher than first
-                    // With column-reverse direction, cards flow up naturally
-                    // Push second card up by (cardHeight - overlap - 11) to make it appear higher
-                    // while maintaining overlap (same as East but opposite direction)
-                    cardOffsetStyle = { marginBottom: idx > 0 ? `${cardHeight - overlap - 11}px` : '0' }
+                    // West: stack bottom to top from center (column-reverse)
+                    // First card centered, additional cards stack above
+                    if (idx === 0) {
+                      // First card: center it by offsetting down by half its height
+                      cardOffsetStyle = { marginBottom: `-${cardHeight / 2}px` }
+                    } else {
+                      // Subsequent cards: stack above with overlap
+                      cardOffsetStyle = { marginBottom: `${cardHeight - overlap}px` }
+                    }
                   }
 
                   return (

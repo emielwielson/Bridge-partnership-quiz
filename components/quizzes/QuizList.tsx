@@ -191,16 +191,11 @@ export default function QuizList() {
             {filteredQuizzes.map((quiz) => (
               <div
                 key={quiz.id}
-                style={{
-                  padding: '1rem',
-                  border: '1px solid #ddd',
-                  borderRadius: '8px',
-                  backgroundColor: '#fff',
-                }}
+                className="quiz-list-item"
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}>
+                <div className="quiz-list-item-content">
+                  <div className="quiz-list-item-main">
+                    <div className="quiz-list-item-header">
                       <h3 style={{ margin: 0, fontSize: '1.25rem' }}>
                         <Link
                           href={`/quizzes/${quiz.id}/edit`}
@@ -224,38 +219,24 @@ export default function QuizList() {
                     {quiz.description && (
                       <p style={{ color: '#666', marginBottom: '0.5rem' }}>{quiz.description}</p>
                     )}
-                    <div style={{ fontSize: '0.9rem', color: '#666' }}>
+                    <div className="quiz-list-item-info">
                       <span>Topic: {quiz.topic}</span>
-                      <span style={{ marginLeft: '1rem' }}>Questions: {quiz._count.questions}</span>
-                      <span style={{ marginLeft: '1rem' }}>By: {quiz.creator.username}</span>
+                      <span>Questions: {quiz._count.questions}</span>
+                      <span>By: {quiz.creator.username}</span>
                     </div>
                   </div>
-                  <div>
+                  <div className="quiz-list-item-action">
                     {quiz.state === 'PUBLISHED' ? (
                       <Link
                         href={`/quizzes/${quiz.id}/start`}
-                        style={{
-                          padding: '0.75rem 1.5rem',
-                          backgroundColor: '#28a745',
-                          color: 'white',
-                          borderRadius: '8px',
-                          textDecoration: 'none',
-                          display: 'inline-block',
-                        }}
+                        className="take-quiz-btn-list"
                       >
                         Take Quiz
                       </Link>
                     ) : (
                       <Link
                         href={`/quizzes/${quiz.id}/edit`}
-                        style={{
-                          padding: '0.75rem 1.5rem',
-                          backgroundColor: '#0070f3',
-                          color: 'white',
-                          borderRadius: '8px',
-                          textDecoration: 'none',
-                          display: 'inline-block',
-                        }}
+                        className="edit-quiz-btn-list"
                       >
                         Edit
                       </Link>

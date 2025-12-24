@@ -90,51 +90,39 @@ export default function ActiveQuizzesPage() {
           {attempts.map((attempt) => (
             <div
               key={attempt.id}
-              style={{
-                padding: '1.5rem',
-                border: '1px solid #ddd',
-                borderRadius: '8px',
-                backgroundColor: '#fff',
-              }}
+              className="active-quiz-item"
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                <div style={{ flex: 1 }}>
+              <div className="active-quiz-item-content">
+                <div className="active-quiz-item-main">
                   <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>
                     {attempt.quiz.title}
                   </h3>
-                  <div style={{ fontSize: '0.9rem', color: '#666', marginBottom: '0.5rem' }}>
+                  <div className="active-quiz-item-info">
                     <span>Topic: {attempt.quiz.topic}</span>
                     {attempt.partnership && (
-                      <span style={{ marginLeft: '1rem' }}>
+                      <span>
                         Partnership: {attempt.partnership.members.map((m) => m.user.username).join(' - ')}
                       </span>
                     )}
                     {attempt.class && (
-                      <span style={{ marginLeft: '1rem' }}>
+                      <span>
                         Class: {attempt.class.name}
                       </span>
                     )}
                   </div>
-                  <div style={{ fontSize: '0.9rem', color: '#666' }}>
-                    Started: {new Date(attempt.startedAt).toLocaleDateString()}
-                    <span style={{ marginLeft: '1rem' }}>
-                      Answers: {attempt._count.answers}
-                    </span>
+                  <div className="active-quiz-item-meta">
+                    <span>Started: {new Date(attempt.startedAt).toLocaleDateString()}</span>
+                    <span>Answers: {attempt._count.answers}</span>
                   </div>
                 </div>
-                <Link
-                  href={`/quizzes/${attempt.quiz.id}/take?${attempt.partnership ? `partnershipId=${attempt.partnership.id}` : attempt.class ? `classId=${attempt.class.id}` : ''}`}
-                  style={{
-                    padding: '0.75rem 1.5rem',
-                    backgroundColor: '#28a745',
-                    color: 'white',
-                    borderRadius: '8px',
-                    textDecoration: 'none',
-                    display: 'inline-block',
-                  }}
-                >
-                  Continue Quiz
-                </Link>
+                <div className="active-quiz-item-action">
+                  <Link
+                    href={`/quizzes/${attempt.quiz.id}/take?${attempt.partnership ? `partnershipId=${attempt.partnership.id}` : attempt.class ? `classId=${attempt.class.id}` : ''}`}
+                    className="continue-quiz-btn"
+                  >
+                    Continue Quiz
+                  </Link>
+                </div>
               </div>
             </div>
           ))}
