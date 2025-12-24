@@ -1,7 +1,7 @@
 import PartnershipList from '@/components/partnerships/PartnershipList'
 import PartnershipInvites from '@/components/partnerships/PartnershipInvites'
 import InviteCodeDisplay from '@/components/partnerships/InviteCodeDisplay'
-import Link from 'next/link'
+import PartnershipsHeader from '@/components/partnerships/PartnershipsHeader'
 import { getSessionId, validateSession } from '@/lib/auth/session'
 import { redirect } from 'next/navigation'
 import { db } from '@/lib/db'
@@ -33,21 +33,7 @@ export default async function PartnershipsPage() {
       maxWidth: '1200px',
       margin: '0 auto',
     }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h1 style={{ fontSize: '2rem' }}>Partnerships</h1>
-        <Link
-          href="/partnerships/create"
-          style={{
-            padding: '0.75rem 1.5rem',
-            backgroundColor: '#0070f3',
-            color: 'white',
-            borderRadius: '8px',
-            textDecoration: 'none',
-          }}
-        >
-          Create Partnership
-        </Link>
-      </div>
+      <PartnershipsHeader />
 
       <InviteCodeDisplay inviteCode={user.inviteCode} />
 

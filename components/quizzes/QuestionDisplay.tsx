@@ -1,7 +1,7 @@
 'use client'
 
 import { Dealer, Vulnerability, BidType, Suit } from '@prisma/client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 interface Bid {
   bidType: BidType
@@ -34,6 +34,16 @@ export default function QuestionDisplay({
   totalQuestions,
 }: QuestionDisplayProps) {
   const [hoveredBidId, setHoveredBidId] = useState<string | null>(null)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   const suitSymbols: Record<Suit, string> = {
     CLUB: '♣',
@@ -179,6 +189,96 @@ export default function QuestionDisplay({
     return bid.bidType
   }
 
+  // Organize bids into rounds for mobile table view
+  // Each round has 4 bids in order: N, E, S, W (starting from dealer)
+  const getBiddingRounds = (): Array<Array<Bid | null>> => {
+    const rounds: Array<Array<Bid | null>> = []
+    const positions = ['N', 'E', 'S', 'W']
+    const dealerIndex = positions.indexOf(auction.dealer)
+    
+    // Create a map of sequence to bid
+    const bidMap = new Map<number, Bid>()
+    auction.bids.forEach(bid => {
+      bidMap.set(bid.sequence, bid)
+    })
+    
+    if (auction.bids.length === 0) return rounds
+    
+    // Calculate number of rounds needed
+    const totalRounds = Math.ceil(auction.bids.length / 4)
+    
+    for (let round = 0; round < totalRounds; round++) {
+      const roundBids: Array<Bid | null> = []
+      for (let posOffset = 0; posOffset < 4; posOffset++) {
+        const sequence = round * 4 + posOffset
+        const positionIndex = (dealerIndex + posOffset) % 4
+        const position = positions[positionIndex]
+        
+        // Find bid at this sequence
+        const bid = bidMap.get(sequence)
+        if (bid) {
+          roundBids.push(bid)
+        } else {
+          roundBids.push(null)
+        }
+      }
+      rounds.push(roundBids)
+    }
+    
+    return rounds
+  }
+
+  const biddingRounds = getBiddingRounds()
+
+  // Get bid cell style for mobile table
+  const getMobileBidCellStyle = (bid: Bid | null, isLastBid: boolean): React.CSSProperties => {
+    if (!bid) {
+      return {
+        padding: '0.5rem',
+        textAlign: 'center',
+        border: '1px solid #ddd',
+        backgroundColor: '#f9f9f9',
+      }
+    }
+
+    const baseStyle: React.CSSProperties = {
+      padding: '0.5rem',
+      textAlign: 'center',
+      border: isLastBid ? '2px solid #f57f17' : '1px solid #ddd',
+      borderRadius: '4px',
+      fontWeight: 'bold',
+      fontSize: '0.9rem',
+    }
+
+    if (bid.bidType === BidType.CONTRACT && bid.suit) {
+      return {
+        ...baseStyle,
+        color: getSuitColor(bid.suit),
+        backgroundColor: '#fff',
+      }
+    } else if (bid.bidType === BidType.DOUBLE) {
+      return {
+        ...baseStyle,
+        backgroundColor: '#ef4444',
+        color: '#fff',
+      }
+    } else if (bid.bidType === BidType.REDOUBLE) {
+      return {
+        ...baseStyle,
+        backgroundColor: '#1e40af',
+        color: '#fff',
+      }
+    } else if (bid.bidType === BidType.PASS) {
+      return {
+        ...baseStyle,
+        backgroundColor: '#22c55e',
+        color: '#fff',
+      }
+    }
+
+    return baseStyle
+  }
+
   return (
     <div style={{ marginBottom: '2rem', width: '100%', maxWidth: '100%' }}>
       <div style={{ marginBottom: '1rem', textAlign: 'center' }}>
@@ -189,8 +289,109 @@ export default function QuestionDisplay({
 
       {/* Auction Display */}
       <div style={{ marginBottom: '1.5rem' }}>
-        {/* Bridge Table Layout with Stacked Cards */}
-        <div style={{
+        {isMobile ? (
+          /* Mobile Table Layout */
+          <div style={{ width: '100%', overflowX: 'auto' }}>
+            <table style={{
+              width: '100%',
+              borderCollapse: 'collapse',
+              fontSize: '0.9rem',
+            }}>
+              <thead>
+                <tr>
+                  {['N', 'E', 'S', 'W'].map((pos) => (
+                    <th
+                      key={pos}
+                      style={{
+                        padding: '0.75rem 0.5rem',
+                        textAlign: 'center',
+                        fontWeight: 'bold',
+                        backgroundColor: isVulnerable(pos) ? '#fcc' : '#cfc',
+                        border: '1px solid #333',
+                        fontSize: '0.85rem',
+                      }}
+                    >
+                      {pos}
+                      {auction.dealer === pos && ' (D)'}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {biddingRounds.map((round, roundIndex) => (
+                  <tr key={roundIndex}>
+                    {round.map((bid, colIndex) => {
+                      const position = ['N', 'E', 'S', 'W'][colIndex]
+                      const isLastBid = lastBid && bid && bid.sequence === lastBid.sequence
+                      const cellStyle = getMobileBidCellStyle(bid, isLastBid || false)
+                      
+                      return (
+                        <td
+                          key={colIndex}
+                          style={{
+                            ...cellStyle,
+                            position: 'relative',
+                            cursor: bid?.alert ? 'pointer' : 'default',
+                          }}
+                          onClick={() => {
+                            if (bid?.alert) {
+                              const bidId = `${bid.sequence}-${position}`
+                              setHoveredBidId(hoveredBidId === bidId ? null : bidId)
+                            }
+                          }}
+                        >
+                          {bid ? (
+                            <>
+                              {formatBid(bid)}
+                              {bid.alert && (
+                                <span style={{
+                                  marginLeft: '0.25rem',
+                                  fontSize: '0.7rem',
+                                  color: '#f90',
+                                }}>
+                                  ⚠
+                                </span>
+                              )}
+                            </>
+                          ) : (
+                            '-'
+                          )}
+                          {bid?.alert && hoveredBidId === `${bid.sequence}-${position}` && (
+                            <div
+                              style={{
+                                position: 'absolute',
+                                top: '100%',
+                                left: '50%',
+                                transform: 'translateX(-50%)',
+                                marginTop: '0.5rem',
+                                padding: '0.5rem 0.75rem',
+                                backgroundColor: '#333',
+                                color: '#fff',
+                                borderRadius: '4px',
+                                fontSize: '0.85rem',
+                                zIndex: 1000,
+                                maxWidth: '200px',
+                                whiteSpace: 'normal',
+                                textAlign: 'left',
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <div style={{ fontWeight: 'bold', marginBottom: '0.25rem' }}>Alert Meaning:</div>
+                              {bid.alert.meaning}
+                            </div>
+                          )}
+                        </td>
+                      )
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          /* Desktop Bridge Table Layout with Stacked Cards */
+          <div style={{
           position: 'relative',
           width: '400px',
           height: '400px',
@@ -552,6 +753,7 @@ export default function QuestionDisplay({
             )
           })}
         </div>
+        )}
 
       </div>
 

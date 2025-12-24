@@ -34,6 +34,7 @@ export default function QuestionEditor() {
   const [alertMeaning, setAlertMeaning] = useState('')
   const [selectedLevel, setSelectedLevel] = useState<number | null>(null)
   const [viewingAlertIndex, setViewingAlertIndex] = useState<number | null>(null)
+  const [isMobile, setIsMobile] = useState(false)
 
   const positions = ['N', 'E', 'S', 'W']
   const dealers: Dealer[] = [Dealer.N, Dealer.E, Dealer.S, Dealer.W]
@@ -656,6 +657,105 @@ export default function QuestionEditor() {
     }
   }
 
+  // Mobile detection
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  // Organize bids into rounds for mobile table view
+  const getBiddingRounds = (): Array<Array<Bid | null>> => {
+    const rounds: Array<Array<Bid | null>> = []
+    const positions = ['N', 'E', 'S', 'W']
+    const dealerIndex = positions.indexOf(dealer)
+    
+    // Create a map of sequence to bid
+    const bidMap = new Map<number, Bid>()
+    bids.forEach(bid => {
+      bidMap.set(bid.sequence, bid)
+    })
+    
+    if (bids.length === 0) return rounds
+    
+    // Calculate number of rounds needed
+    const totalRounds = Math.ceil(bids.length / 4)
+    
+    for (let round = 0; round < totalRounds; round++) {
+      const roundBids: Array<Bid | null> = []
+      for (let posOffset = 0; posOffset < 4; posOffset++) {
+        const sequence = round * 4 + posOffset
+        const positionIndex = (dealerIndex + posOffset) % 4
+        const position = positions[positionIndex]
+        
+        // Find bid at this sequence
+        const bid = bidMap.get(sequence)
+        if (bid) {
+          roundBids.push(bid)
+        } else {
+          roundBids.push(null)
+        }
+      }
+      rounds.push(roundBids)
+    }
+    
+    return rounds
+  }
+
+  const biddingRounds = getBiddingRounds()
+
+  // Get bid cell style for mobile table
+  const getMobileBidCellStyle = (bid: Bid | null): React.CSSProperties => {
+    if (!bid) {
+      return {
+        padding: '0.5rem',
+        textAlign: 'center',
+        border: '1px solid #ddd',
+        backgroundColor: '#f9f9f9',
+      }
+    }
+
+    const baseStyle: React.CSSProperties = {
+      padding: '0.5rem',
+      textAlign: 'center',
+      border: '1px solid #ddd',
+      borderRadius: '4px',
+      fontWeight: 'bold',
+      fontSize: '0.9rem',
+    }
+
+    if (bid.bidType === BidType.CONTRACT && bid.suit) {
+      return {
+        ...baseStyle,
+        color: getSuitColor(bid.suit),
+        backgroundColor: '#fff',
+      }
+    } else if (bid.bidType === BidType.DOUBLE) {
+      return {
+        ...baseStyle,
+        backgroundColor: '#ef4444',
+        color: '#fff',
+      }
+    } else if (bid.bidType === BidType.REDOUBLE) {
+      return {
+        ...baseStyle,
+        backgroundColor: '#1e40af',
+        color: '#fff',
+      }
+    } else if (bid.bidType === BidType.PASS) {
+      return {
+        ...baseStyle,
+        backgroundColor: '#22c55e',
+        color: '#fff',
+      }
+    }
+
+    return baseStyle
+  }
+
   // Get rotation angle for position
   const getRotation = (position: string): string => {
     switch (position) {
@@ -741,9 +841,9 @@ export default function QuestionEditor() {
         {questionId ? 'Edit Question' : 'Create Question'}
       </h2>
 
-      <div style={{ display: 'flex', gap: '2rem', marginBottom: '2rem' }}>
+      <div className="question-editor-layout">
         {/* Left: Bridge Table */}
-        <div style={{ flex: 1 }}>
+        <div className="question-editor-auction-section">
           <div style={{ marginBottom: '1rem' }}>
             <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
               <div>
@@ -803,16 +903,115 @@ export default function QuestionEditor() {
               </div>
             </div>
 
-            {/* Bridge Table */}
-            <div style={{
-              position: 'relative',
-              width: '400px',
-              height: '400px',
-              margin: '0 auto',
-              border: '3px solid #333',
-              borderRadius: '8px',
-              backgroundColor: '#f9f9f9',
-            }}>
+            {/* Auction Display */}
+            {isMobile ? (
+              /* Mobile Table Layout */
+              <div style={{ width: '100%', position: 'relative' }}>
+                {/* Alert tooltip - displayed above the table on mobile */}
+                {viewingAlertIndex !== null && bids[viewingAlertIndex]?.alert && (
+                  <div
+                    style={{
+                      marginBottom: '1rem',
+                      padding: '0.75rem 1rem',
+                      backgroundColor: '#333',
+                      color: '#fff',
+                      borderRadius: '4px',
+                      fontSize: '0.85rem',
+                      maxWidth: '100%',
+                      whiteSpace: 'normal',
+                      textAlign: 'left',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                    }}
+                  >
+                    <div style={{ fontWeight: 'bold', marginBottom: '0.25rem' }}>Alert Meaning:</div>
+                    <div>{bids[viewingAlertIndex].alert!.meaning}</div>
+                  </div>
+                )}
+                <div style={{ width: '100%', overflowX: 'auto', marginBottom: '1rem' }}>
+                  <table style={{
+                  width: '100%',
+                  borderCollapse: 'collapse',
+                  fontSize: '0.9rem',
+                }}>
+                  <thead>
+                    <tr>
+                      {['N', 'E', 'S', 'W'].map((pos) => (
+                        <th
+                          key={pos}
+                          style={{
+                            padding: '0.75rem 0.5rem',
+                            textAlign: 'center',
+                            fontWeight: 'bold',
+                            backgroundColor: isVulnerable(pos) ? '#fcc' : '#cfc',
+                            border: '1px solid #333',
+                            fontSize: '0.85rem',
+                          }}
+                        >
+                          {pos}
+                          {dealer === pos && ' (D)'}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {biddingRounds.map((round, roundIndex) => (
+                      <tr key={roundIndex}>
+                        {round.map((bid, colIndex) => {
+                          const position = ['N', 'E', 'S', 'W'][colIndex]
+                          const globalIndex = bid ? bids.findIndex(b => b === bid) : -1
+                          const cellStyle = getMobileBidCellStyle(bid)
+                          const isViewingAlert = viewingAlertIndex === globalIndex
+                          
+                          return (
+                            <td
+                              key={colIndex}
+                              style={{
+                                ...cellStyle,
+                                position: 'relative',
+                                cursor: bid?.alert ? 'pointer' : 'default',
+                              }}
+                              onClick={() => {
+                                if (bid?.alert) {
+                                  setViewingAlertIndex(isViewingAlert ? null : globalIndex)
+                                }
+                              }}
+                            >
+                              {bid ? (
+                                <>
+                                  {getBidDisplay(bid)}
+                                  {bid.alert && (
+                                    <span style={{
+                                      marginLeft: '0.25rem',
+                                      fontSize: '0.7rem',
+                                      color: '#f90',
+                                    }}>
+                                      ⚠
+                                    </span>
+                                  )}
+                                </>
+                              ) : (
+                                '-'
+                              )}
+                            </td>
+                          )
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                </div>
+              </div>
+            ) : (
+              /* Desktop Bridge Table */
+              <div style={{
+                position: 'relative',
+                width: '400px',
+                height: '400px',
+                margin: '0 auto',
+                border: '3px solid #333',
+                borderRadius: '8px',
+                backgroundColor: '#f9f9f9',
+              }}>
               {/* North */}
               <div style={{
                 position: 'absolute',
@@ -1151,6 +1350,7 @@ export default function QuestionEditor() {
                 </div>
               )}
             </div>
+            )}
 
             {bids.length > 0 && (
               <button
@@ -1175,7 +1375,7 @@ export default function QuestionEditor() {
         </div>
 
         {/* Right: Bid Selection */}
-        <div style={{ width: '300px' }}>
+        <div className="question-editor-bid-selection">
           <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>Select Bid</h3>
           
           {/* Alert Editor Toggle */}

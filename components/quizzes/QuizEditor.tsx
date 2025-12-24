@@ -181,8 +181,8 @@ export default function QuizEditor() {
   return (
     <div>
       <div style={{ marginBottom: '2rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1rem' }}>
-          <div style={{ flex: 1 }}>
+        <div className="quiz-editor-header">
+          <div className="quiz-editor-title-section">
             {editingTitle ? (
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}>
                 <input
@@ -273,46 +273,25 @@ export default function QuizEditor() {
               <p style={{ color: '#666', marginTop: '0.5rem' }}>{quiz.description}</p>
             )}
           </div>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <div className="quiz-editor-buttons">
             {isCreator && quiz.state === 'DRAFT' && (
               <button
                 onClick={handlePublish}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  backgroundColor: '#0070f3',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                }}
+                className="publish-quiz-btn"
               >
                 Publish Quiz
               </button>
             )}
             <button
               onClick={handleCopy}
-              style={{
-                padding: '0.75rem 1.5rem',
-                backgroundColor: '#28a745',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: 'pointer',
-              }}
+              className="copy-quiz-btn"
             >
               Copy Quiz
             </button>
             {quiz.state === 'PUBLISHED' && (
               <Link
                 href={`/quizzes/${quizId}/start`}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  backgroundColor: '#0070f3',
-                  color: 'white',
-                  borderRadius: '8px',
-                  textDecoration: 'none',
-                  display: 'inline-block',
-                }}
+                className="take-quiz-btn"
               >
                 Take Quiz
               </Link>
@@ -320,14 +299,7 @@ export default function QuizEditor() {
             {isCreator && quiz.state === 'PUBLISHED' && (
               <Link
                 href={`/quizzes/${quizId}/results`}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  backgroundColor: '#6f42c1',
-                  color: 'white',
-                  borderRadius: '8px',
-                  textDecoration: 'none',
-                  display: 'inline-block',
-                }}
+                className="view-results-btn"
               >
                 View Results
               </Link>
