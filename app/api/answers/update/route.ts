@@ -174,6 +174,7 @@ export async function PUT(request: NextRequest) {
         id: true,
         status: true,
         partnershipId: true,
+        classId: true,
         quizId: true,
       },
     })
