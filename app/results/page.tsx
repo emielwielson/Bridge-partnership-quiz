@@ -37,6 +37,8 @@ interface QuizResult {
   overallScore?: number // Optional for class results
   attemptId?: string
   isClassResult?: boolean
+  studentsCompleted?: number // For class results
+  totalStudents?: number // For class results
 }
 
 interface QuestionDetail {
@@ -45,12 +47,18 @@ interface QuestionDetail {
   prompt: string
   answerType: AnswerType
   auction: any
-  memberAnswers: Array<{
+  memberAnswers?: Array<{
     userId: string
     username: string
     answer: any
   }>
-  agreed: boolean
+  agreed?: boolean
+  answerDistribution?: Array<{
+    answer: any
+    count: number
+    percentage: number
+  }>
+  totalAnswers?: number
 }
 
 interface QuizDetail {
@@ -65,9 +73,11 @@ interface QuizDetail {
       id: string
       username: string
     }>
-  }
+  } | null
   completedAt: string
   questions: QuestionDetail[]
+  studentsCompleted?: number
+  totalStudents?: number
 }
 
 export default function ResultsPage() {
@@ -644,7 +654,7 @@ export default function ResultsPage() {
                                 Answers:
                               </strong>
                               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
-                                {question.memberAnswers.map((memberAnswer) => (
+                                {question.memberAnswers?.map((memberAnswer) => (
                                   <div
                                     key={memberAnswer.userId}
                                     style={{

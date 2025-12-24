@@ -75,13 +75,6 @@ export default function ClassDashboard() {
     }
   }, [classId])
 
-  useEffect(() => {
-    if (classId) {
-      fetchClassData()
-      fetchCompletedQuizzes()
-    }
-  }, [classId, fetchClassData])
-
   const fetchCompletedQuizzes = useCallback(async () => {
     if (!classId) return
     
@@ -118,6 +111,13 @@ export default function ClassDashboard() {
       setLoadingCompleted(false)
     }
   }, [classId, classData?.activeQuiz?.id])
+
+  useEffect(() => {
+    if (classId) {
+      fetchClassData()
+      fetchCompletedQuizzes()
+    }
+  }, [classId, fetchClassData, fetchCompletedQuizzes])
 
   const copyClassCode = async () => {
     if (classData?.classLink) {

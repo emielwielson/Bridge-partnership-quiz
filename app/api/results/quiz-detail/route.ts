@@ -55,7 +55,43 @@ export async function GET(request: NextRequest) {
 
     // If attemptId is provided, find all attempts from the same attempt set
     // (attempts created at the same time for the same quiz/partnership)
-    let attempts
+    const queryInclude = {
+      quiz: {
+        include: {
+          questions: {
+            orderBy: {
+              order: 'asc' as const,
+            },
+            include: {
+              auction: {
+                include: {
+                  bids: {
+                    orderBy: {
+                      sequence: 'asc' as const,
+                    },
+                    include: {
+                      alert: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      answers: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              username: true,
+            },
+          },
+        },
+      },
+    }
+
+    let attempts: any[]
     if (attemptId) {
       // Get the reference attempt to find its startedAt time
       const referenceAttempt = await db.attempt.findUnique({
@@ -87,43 +123,9 @@ export async function GET(request: NextRequest) {
             lte: startedAtEnd,
           },
         },
-      include: {
-        quiz: {
-          include: {
-            questions: {
-              orderBy: {
-                order: 'asc',
-              },
-              include: {
-                auction: {
-                  include: {
-                    bids: {
-                      orderBy: {
-                        sequence: 'asc',
-                      },
-                      include: {
-                        alert: true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-        answers: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                username: true,
-              },
-            },
-          },
-        },
-      },
+        include: queryInclude,
         orderBy: {
-          completedAt: 'desc',
+          completedAt: 'desc' as const,
         },
       })
     } else {
@@ -137,49 +139,15 @@ export async function GET(request: NextRequest) {
           },
           status: 'COMPLETED',
         },
-        include: {
-          quiz: {
-            include: {
-              questions: {
-                orderBy: {
-                  order: 'asc',
-                },
-                include: {
-                  auction: {
-                    include: {
-                      bids: {
-                        orderBy: {
-                          sequence: 'asc',
-                        },
-                        include: {
-                          alert: true,
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-          answers: {
-            include: {
-              user: {
-                select: {
-                  id: true,
-                  username: true,
-                },
-              },
-            },
-          },
-        },
+        include: queryInclude,
         orderBy: {
-          completedAt: 'desc',
+          completedAt: 'desc' as const,
         },
       })
 
       // Group by startedAt to get the most recent attempt set
-      const attemptsByStartedAt = new Map<string, typeof attempts>()
-      attempts.forEach((attempt) => {
+      const attemptsByStartedAt = new Map<string, any[]>()
+      attempts.forEach((attempt: any) => {
         const key = attempt.startedAt.toISOString()
         const existing = attemptsByStartedAt.get(key) || []
         existing.push(attempt)
@@ -209,8 +177,8 @@ export async function GET(request: NextRequest) {
     // Each member has their own attempt, so we need to collect answers from all attempts
     const answersByQuestion = new Map<string, any[]>()
     
-    attempts.forEach((attempt) => {
-      attempt.answers.forEach((answer) => {
+    attempts.forEach((attempt: any) => {
+      attempt.answers.forEach((answer: any) => {
         const existing = answersByQuestion.get(answer.questionId) || []
         existing.push(answer)
         answersByQuestion.set(answer.questionId, existing)
@@ -218,12 +186,12 @@ export async function GET(request: NextRequest) {
     })
 
     // Build question details with answers from all attempts
-    const questionDetails = quizData.questions.map((question) => {
+    const questionDetails = quizData.questions.map((question: any) => {
       const questionAnswers = answersByQuestion.get(question.id) || []
       
       // Get answers for each member (from their respective attempts)
-      const memberAnswers = partnership.members.map((member) => {
-        const memberAnswer = questionAnswers.find((a) => a.userId === member.userId)
+      const memberAnswers = partnership.members.map((member: any) => {
+        const memberAnswer = questionAnswers.find((a: any) => a.userId === member.userId)
         return {
           userId: member.userId,
           username: member.user.username,
@@ -264,7 +232,7 @@ export async function GET(request: NextRequest) {
         },
         partnership: {
           id: partnership.id,
-          members: partnership.members.map((m) => ({
+          members: partnership.members.map((m: any) => ({
             id: m.user.id,
             username: m.user.username,
           })),
