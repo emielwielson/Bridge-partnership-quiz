@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
-export default function PartnershipResultsPage() {
+function PartnershipResultsPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [partners, setPartners] = useState<any[]>([])
@@ -187,6 +187,14 @@ export default function PartnershipResultsPage() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function PartnershipResultsPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <PartnershipResultsPageContent />
+    </Suspense>
   )
 }
 

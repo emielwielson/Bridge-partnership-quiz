@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import QuestionDisplay from '@/components/quizzes/QuestionDisplay'
@@ -80,7 +80,7 @@ interface QuizDetail {
   totalStudents?: number
 }
 
-export default function ResultsPage() {
+function ResultsPageContent() {
   const searchParams = useSearchParams()
   const [partnerships, setPartnerships] = useState<Partnership[]>([])
   const [classes, setClasses] = useState<Class[]>([])
@@ -690,5 +690,13 @@ export default function ResultsPage() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function ResultsPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ResultsPageContent />
+    </Suspense>
   )
 }
