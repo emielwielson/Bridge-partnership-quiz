@@ -3,6 +3,7 @@
 import { useParams, useRouter } from 'next/navigation'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import QuizPlayer from '@/components/quizzes/QuizPlayer'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 export default function TakeQuizPage() {
   const params = useParams()
@@ -80,7 +81,7 @@ export default function TakeQuizPage() {
   }, [quizId, attemptId, createAttempt])
 
   if (loading) {
-    return <div>Starting quiz...</div>
+    return <LoadingSpinner message="Starting quiz..." />
   }
 
   if (error) {
