@@ -36,6 +36,7 @@ export default function QuestionEditor() {
   const [selectedLevel, setSelectedLevel] = useState<number | null>(null)
   const [viewingAlertIndex, setViewingAlertIndex] = useState<number | null>(null)
   const [isMobile, setIsMobile] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
   const positions = ['N', 'E', 'S', 'W']
   const dealers: Dealer[] = [Dealer.N, Dealer.E, Dealer.S, Dealer.W]
@@ -660,6 +661,7 @@ export default function QuestionEditor() {
 
   // Mobile detection
   useEffect(() => {
+    setMounted(true)
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768)
     }
@@ -905,7 +907,7 @@ export default function QuestionEditor() {
             </div>
 
             {/* Auction Display */}
-            {isMobile ? (
+            {mounted && isMobile ? (
               /* Mobile Table Layout */
               <div style={{ width: '100%', position: 'relative' }}>
                 {/* Alert tooltip - displayed above the table on mobile */}
@@ -1013,198 +1015,177 @@ export default function QuestionEditor() {
                 borderRadius: '8px',
                 backgroundColor: '#f9f9f9',
               }}>
-              {/* North */}
+              {/* Center Compass */}
               <div style={{
                 position: 'absolute',
-                top: '10px',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                width: '80px',
-                padding: '0.75rem',
-                backgroundColor: isVulnerable('N') ? '#fcc' : '#cfc',
-                border: '2px solid #333',
-                borderRadius: '4px',
-                textAlign: 'center',
-                fontWeight: 'bold',
-              }}>
-                N{dealer === Dealer.N && ' (D)'}
-              </div>
-              
-              {/* East */}
-              <div style={{
-                position: 'absolute',
-                right: '10px',
                 top: '50%',
-                transform: 'translateY(-50%)',
-                width: '80px',
-                padding: '0.75rem',
-                backgroundColor: isVulnerable('E') ? '#fcc' : '#cfc',
-                border: '2px solid #333',
-                borderRadius: '4px',
-                textAlign: 'center',
-                fontWeight: 'bold',
-              }}>
-                E{dealer === Dealer.E && ' (D)'}
-              </div>
-              
-              {/* South */}
-              <div style={{
-                position: 'absolute',
-                bottom: '10px',
                 left: '50%',
-                transform: 'translateX(-50%)',
-                width: '80px',
-                padding: '0.75rem',
-                backgroundColor: isVulnerable('S') ? '#fcc' : '#cfc',
+                transform: 'translate(-50%, -50%)',
+                width: '90px',
+                height: '90px',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: '#fff',
                 border: '2px solid #333',
-                borderRadius: '4px',
-                textAlign: 'center',
-                fontWeight: 'bold',
+                borderRadius: '50%',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
               }}>
-                S{dealer === Dealer.S && ' (D)'}
-              </div>
-              
-              {/* West */}
-              <div style={{
-                position: 'absolute',
-                left: '10px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                width: '80px',
-                padding: '0.75rem',
-                backgroundColor: isVulnerable('W') ? '#fcc' : '#cfc',
-                border: '2px solid #333',
-                borderRadius: '4px',
-                textAlign: 'center',
-                fontWeight: 'bold',
-              }}>
-                W{dealer === Dealer.W && ' (D)'}
+                {/* Compass directions */}
+                <div style={{
+                  position: 'absolute',
+                  top: '6px',
+                  fontWeight: 'bold',
+                  fontSize: '1.1rem',
+                  color: '#1e40af',
+                }}>N</div>
+                <div style={{
+                  position: 'absolute',
+                  right: '6px',
+                  fontWeight: 'bold',
+                  fontSize: '1.1rem',
+                  color: '#1e40af',
+                }}>E</div>
+                <div style={{
+                  position: 'absolute',
+                  bottom: '6px',
+                  fontWeight: 'bold',
+                  fontSize: '1.1rem',
+                  color: '#1e40af',
+                }}>S</div>
+                <div style={{
+                  position: 'absolute',
+                  left: '6px',
+                  fontWeight: 'bold',
+                  fontSize: '1.1rem',
+                  color: '#1e40af',
+                }}>W</div>
+                {/* Center dot */}
+                <div style={{
+                  width: '8px',
+                  height: '8px',
+                  backgroundColor: '#333',
+                  borderRadius: '50%',
+                }}></div>
+                {/* Dealer indicator */}
+                {dealer && (
+                  <div style={{
+                    position: 'absolute',
+                    bottom: '-20px',
+                    fontSize: '0.75rem',
+                    color: '#666',
+                    fontWeight: 'bold',
+                  }}>
+                    Dealer: {dealer}
+                  </div>
+                )}
               </div>
 
-              {/* Bids displayed around the table */}
+              {/* Stacked Bidding Cards */}
               {positions.map((pos) => {
                 const positionBids = getBidsForPosition(pos)
-                let positionStyle: React.CSSProperties = {}
                 
-                // Equal spacing for all positions - 100px from edges
+                // Container for all cards at this position
+                let containerStyle: React.CSSProperties = {}
+                
+                // Place cards on the edges of the table for more space
                 if (pos === 'N') {
-                  positionStyle = {
+                  containerStyle = {
                     position: 'absolute',
-                    top: '100px',
+                    top: '50px', // Move down from top edge
                     left: '50%',
-                    transform: 'translateX(-50%)',
                   }
                 } else if (pos === 'E') {
-                  positionStyle = {
+                  containerStyle = {
                     position: 'absolute',
-                    right: '100px',
+                    right: '50px', // Move left from right edge
                     top: '50%',
-                    transform: 'translateY(-50%)',
                   }
                 } else if (pos === 'S') {
-                  positionStyle = {
+                  containerStyle = {
                     position: 'absolute',
-                    bottom: '100px',
+                    bottom: '50px', // Move up from bottom edge
                     left: '50%',
-                    transform: 'translateX(-50%)',
                   }
                 } else if (pos === 'W') {
-                  positionStyle = {
+                  containerStyle = {
                     position: 'absolute',
-                    left: '100px',
+                    left: '25px', // Keep good distance
                     top: '50%',
-                    transform: 'translateY(-50%)',
                   }
-                }
-
-                // Stacking direction based on position
-                let flexDirection: 'row' | 'row-reverse' | 'column' | 'column-reverse' = 'row'
-                
-                if (pos === 'N') {
-                  // North: stack left to right, overlap from left
-                  flexDirection = 'row'
-                } else if (pos === 'E') {
-                  // East: stack top to bottom, overlap from top
-                  flexDirection = 'column'
-                } else if (pos === 'S') {
-                  // South: stack right to left, overlap from right
-                  flexDirection = 'row-reverse'
-                } else if (pos === 'W') {
-                  // West: stack bottom to top, overlap from bottom
-                  flexDirection = 'column-reverse'
                 }
                 
                 return (
                   <div
                     key={pos}
                     style={{
-                      ...positionStyle,
-                      display: 'flex',
-                      flexDirection,
-                      alignItems: 'center',
-                      justifyContent: pos === 'N' || pos === 'S' ? 'center' : 'flex-start',
-                      alignContent: pos === 'E' || pos === 'W' ? 'center' : 'flex-start',
-                      gap: '0',
+                      ...containerStyle,
+                      position: 'absolute',
                     }}
                   >
                     {positionBids.map((bid, idx) => {
                       const globalIndex = bids.findIndex(b => b === bid)
                       const cardStyle = getBidCardStyle(bid, idx, positionBids.length, pos)
                       
-                      // Calculate offset based on position
-                      // Cards overlap so only the edge with the symbol is visible
-                      // First card should always be centered, additional cards stack from there
-                      let cardOffsetStyle: React.CSSProperties = {}
-                      const cardHeight = 50 // Height of the card (for East/West)
-                      const cardWidth = 80 // Width of the card (for North/South)
+                      // Card dimensions (before rotation)
+                      const cardHeight = 50
+                      const cardWidth = 80
                       const overlap = 60 // Most of card hidden, only edge visible
+                      const stackOffset = 30 // Shift for stacking cards (larger = less overlap, more visible)
+                      
+                      // Calculate absolute position for each card
+                      // Cards are rotated, so we need to account for that in positioning
+                      let cardPositionStyle: React.CSSProperties = {}
                       
                       if (pos === 'N') {
-                        // North: stack left to right from center
-                        // First card centered, additional cards stack to the right
-                        if (idx === 0) {
-                          // First card: center it by offsetting left by half its width
-                          cardOffsetStyle = { marginLeft: `-${cardWidth / 2}px` }
-                        } else {
-                          // Subsequent cards: stack to the right with overlap
-                          cardOffsetStyle = { marginLeft: `${cardWidth - overlap}px` }
+                        // North: stack left to right from center, cards not rotated
+                        // All cards start at same position (centered), then shift right by small amount
+                        const firstCardX = -cardWidth / 2 // Center the first card horizontally
+                        const cardX = firstCardX + idx * stackOffset
+                        cardPositionStyle = {
+                          position: 'absolute',
+                          left: `${cardX}px`,
+                          top: `${-cardHeight / 2}px`, // Center vertically
                         }
                       } else if (pos === 'E') {
-                        // East: stack top to bottom from center
-                        // First card centered, additional cards stack below
-                        if (idx === 0) {
-                          // First card: center it by offsetting up by half its height
-                          cardOffsetStyle = { marginTop: `-${cardHeight / 2}px` }
-                        } else {
-                          // Subsequent cards: stack below with overlap
-                          cardOffsetStyle = { marginTop: `${cardHeight - overlap}px` }
+                        // East: stack top to bottom from center, cards rotated 90deg
+                        // When rotated 90deg, width becomes height and height becomes width
+                        // All cards start at same position (centered), then shift down by small amount
+                        const firstCardY = -cardWidth / 2 // Center the first card vertically (using width since rotated)
+                        const cardY = firstCardY + idx * stackOffset
+                        cardPositionStyle = {
+                          position: 'absolute',
+                          top: `${cardY}px`,
+                          left: `${-cardHeight / 2}px`, // Center horizontally
                         }
                       } else if (pos === 'S') {
-                        // South: stack right to left from center (row-reverse)
-                        // First card centered, additional cards stack to the left
-                        if (idx === 0) {
-                          // First card: center it by offsetting right by half its width
-                          cardOffsetStyle = { marginRight: `-${cardWidth / 2}px` }
-                        } else {
-                          // Subsequent cards: stack to the left with overlap
-                          cardOffsetStyle = { marginRight: `${cardWidth - overlap}px` }
+                        // South: stack right to left from center, cards rotated 180deg
+                        // All cards start at same position (centered), then shift left by small amount
+                        const firstCardX = -cardWidth / 2 // Center the first card horizontally
+                        const cardX = firstCardX - idx * stackOffset
+                        cardPositionStyle = {
+                          position: 'absolute',
+                          left: `${cardX}px`,
+                          top: `${-cardHeight / 2}px`, // Center vertically
                         }
                       } else if (pos === 'W') {
-                        // West: stack bottom to top from center (column-reverse)
-                        // First card centered, additional cards stack above
-                        if (idx === 0) {
-                          // First card: center it by offsetting down by half its height
-                          cardOffsetStyle = { marginBottom: `-${cardHeight / 2}px` }
-                        } else {
-                          // Subsequent cards: stack above with overlap
-                          cardOffsetStyle = { marginBottom: `${cardHeight - overlap}px` }
+                        // West: stack bottom to top from center, cards rotated 270deg
+                        // When rotated 270deg, width becomes height and height becomes width
+                        // All cards start at same position (centered), then shift up by small amount
+                        const firstCardY = -cardWidth / 2 // Center the first card vertically (using width since rotated)
+                        const cardY = firstCardY - idx * stackOffset
+                        cardPositionStyle = {
+                          position: 'absolute',
+                          top: `${cardY}px`,
+                          left: `${-cardHeight / 2}px`, // Center horizontally
                         }
                       }
                       
                       const isViewingAlert = viewingAlertIndex === globalIndex
                       
                       return (
-                        <div key={idx} style={{ position: 'relative', ...cardOffsetStyle }}>
+                        <div key={idx} style={cardPositionStyle}>
                           <button
                             type="button"
                             onClick={(e) => {
