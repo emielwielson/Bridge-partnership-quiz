@@ -9,6 +9,7 @@ import DoubleInterpretationInput from './DoubleInterpretationInput'
 import RedoubleInterpretationInput from './RedoubleInterpretationInput'
 import FreeAnswerInput from './FreeAnswerInput'
 import MultipleChoiceInput from './MultipleChoiceInput'
+import LoadingSpinner from '../ui/LoadingSpinner'
 
 interface Question {
   id: string
@@ -237,7 +238,7 @@ export default function QuizPlayer({ attemptId }: QuizPlayerProps) {
   }
 
   if (loading) {
-    return <div>Loading quiz...</div>
+    return <LoadingSpinner message="Loading quiz..." />
   }
 
   if (error) {

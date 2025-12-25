@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import LoadingSpinner from '../ui/LoadingSpinner'
 
 interface Invitation {
   id: string
@@ -94,7 +95,7 @@ export default function PartnershipInvites() {
   }
 
   if (loading) {
-    return <div>Loading invitations...</div>
+    return <LoadingSpinner message="Loading invitations..." />
   }
 
   if (error) {

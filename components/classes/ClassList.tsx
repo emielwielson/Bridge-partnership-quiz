@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import LoadingSpinner from '../ui/LoadingSpinner'
 
 interface Class {
   id: string
@@ -53,17 +54,23 @@ export default function ClassList() {
     }
   }
 
-  if (loading) {
-    return <div>Loading classes...</div>
-  }
-
   if (error) {
-    return <div style={{ color: '#c33' }}>{error}</div>
+    return (
+      <div>
+        <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Your Classes</h2>
+        <div style={{ color: '#c33' }}>{error}</div>
+      </div>
+    )
   }
 
   return (
     <div>
       <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Your Classes</h2>
+
+      {loading ? (
+        <LoadingSpinner message="Loading classes..." />
+      ) : (
+        <>
 
       {teacherClasses.length > 0 && (
         <div style={{ marginBottom: '2rem' }}>
@@ -175,6 +182,8 @@ export default function ClassList() {
             </Link>
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   )

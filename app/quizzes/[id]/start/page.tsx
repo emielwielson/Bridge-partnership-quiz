@@ -3,6 +3,7 @@
 import { useParams, useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 export default function StartQuizPage() {
   const params = useParams()
@@ -74,7 +75,7 @@ export default function StartQuizPage() {
   }
 
   if (loading) {
-    return <div>Loading...</div>
+    return <LoadingSpinner message="Loading..." />
   }
 
   if (error) {

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import LoadingSpinner from '../ui/LoadingSpinner'
 
 interface Partnership {
   id: string
@@ -63,21 +64,11 @@ export default function PartnershipList() {
     }
   }
 
-  if (loading) {
-    return <div>Loading partnerships...</div>
-  }
-
   if (error) {
-    return <div style={{ color: '#c33' }}>{error}</div>
-  }
-
-  if (partnerships.length === 0) {
     return (
       <div>
-        <p>You don&apos;t have any partnerships yet.</p>
-        <Link href="/partnerships/create" style={{ color: '#0070f3', textDecoration: 'underline' }}>
-          Create a partnership
-        </Link>
+        <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Your Partnerships</h2>
+        <div style={{ color: '#c33' }}>{error}</div>
       </div>
     )
   }
@@ -85,6 +76,18 @@ export default function PartnershipList() {
   return (
     <div>
       <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Your Partnerships</h2>
+
+      {loading ? (
+        <LoadingSpinner message="Loading partnerships..." />
+      ) : partnerships.length === 0 ? (
+        <div>
+          <p>You don&apos;t have any partnerships yet.</p>
+          <Link href="/partnerships/create" style={{ color: '#0070f3', textDecoration: 'underline' }}>
+            Create a partnership
+          </Link>
+        </div>
+      ) : (
+        <>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         {partnerships.map((partnership) => (
           <div
@@ -120,6 +123,8 @@ export default function PartnershipList() {
           </div>
         ))}
       </div>
+        </>
+      )}
     </div>
   )
 }

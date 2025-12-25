@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import LoadingSpinner from '../ui/LoadingSpinner'
 
 interface Question {
   id: string
@@ -171,7 +172,7 @@ export default function QuizEditor() {
   }
 
   if (loading) {
-    return <div>Loading quiz...</div>
+    return <LoadingSpinner message="Loading quiz..." />
   }
 
   if (error || !quiz) {

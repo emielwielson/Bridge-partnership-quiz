@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Dealer, Vulnerability, BidType, Suit, AnswerType } from '@prisma/client'
+import LoadingSpinner from '../ui/LoadingSpinner'
 
 interface Bid {
   bidType: BidType
@@ -832,7 +833,7 @@ export default function QuestionEditor() {
   }
 
   if (loading && questionId && bids.length === 0 && !prompt) {
-    return <div>Loading question...</div>
+    return <LoadingSpinner message="Loading question..." />
   }
 
   return (

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
+import LoadingSpinner from '../ui/LoadingSpinner'
 
 interface ClassData {
   id: string
@@ -219,7 +220,7 @@ export default function ClassDashboard() {
   }
 
   if (loading) {
-    return <div>Loading class...</div>
+    return <LoadingSpinner message="Loading class..." />
   }
 
   if (error || !classData) {
@@ -458,7 +459,7 @@ export default function ClassDashboard() {
       <div style={{ marginTop: '2rem' }}>
         <h2 style={{ fontSize: '1.5rem', marginBottom: '0.75rem' }}>Completed Quizzes</h2>
         {loadingCompleted ? (
-          <p style={{ color: '#666' }}>Loading completed quizzes...</p>
+          <LoadingSpinner message="Loading completed quizzes..." size="small" />
         ) : completedQuizzes.length > 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             {completedQuizzes.map((quiz) => (

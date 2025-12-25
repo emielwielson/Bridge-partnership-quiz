@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
+import LoadingSpinner from '../ui/LoadingSpinner'
 
 interface Quiz {
   id: string
@@ -93,10 +94,6 @@ export default function QuizList() {
     'Other',
   ]
 
-  if (loading && quizzes.length === 0) {
-    return <div>Loading quizzes...</div>
-  }
-
   if (error) {
     return <div style={{ color: '#c33' }}>{error}</div>
   }
@@ -178,7 +175,9 @@ export default function QuizList() {
         </div>
       </div>
 
-      {filteredQuizzes.length === 0 ? (
+      {loading && quizzes.length === 0 ? (
+        <LoadingSpinner message="Loading quizzes..." />
+      ) : filteredQuizzes.length === 0 ? (
         <div>
           <p>No quizzes found.</p>
           <Link href="/quizzes/create" style={{ color: '#0070f3', textDecoration: 'underline' }}>

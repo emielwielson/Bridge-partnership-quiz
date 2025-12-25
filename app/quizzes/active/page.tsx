@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 interface Attempt {
   id: string
@@ -55,17 +56,23 @@ export default function ActiveQuizzesPage() {
     }
   }
 
-  if (loading) {
-    return <div>Loading active quizzes...</div>
-  }
-
   if (error) {
-    return <div style={{ color: '#c33' }}>{error}</div>
+    return (
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem' }}>
+        <h1 style={{ fontSize: '2rem', marginBottom: '2rem' }}>Active Quizzes</h1>
+        <div style={{ color: '#c33' }}>{error}</div>
+      </div>
+    )
   }
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem' }}>
       <h1 style={{ fontSize: '2rem', marginBottom: '2rem' }}>Active Quizzes</h1>
+
+      {loading ? (
+        <LoadingSpinner message="Loading active quizzes..." />
+      ) : (
+        <>
 
       {attempts.length === 0 ? (
         <div style={{ padding: '2rem', textAlign: 'center', color: '#666' }}>
@@ -127,6 +134,8 @@ export default function ActiveQuizzesPage() {
             </div>
           ))}
         </div>
+      )}
+        </>
       )}
     </div>
   )

@@ -3,6 +3,7 @@
 import { useParams, useRouter } from 'next/navigation'
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 interface QuestionStat {
   questionId: string
@@ -46,7 +47,7 @@ export default function QuizmasterResultsPage() {
   }, [quizId, fetchOverview])
 
   if (loading) {
-    return <div>Loading results...</div>
+    return <LoadingSpinner message="Loading results..." />
   }
 
   if (error) {
@@ -208,7 +209,7 @@ function PartnershipListView({ quizId }: { quizId: string }) {
   }, [fetchPartnerships])
 
   if (loading) {
-    return <div>Loading partnerships...</div>
+    return <LoadingSpinner message="Loading partnerships..." />
   }
 
   return (

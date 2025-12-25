@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 function PartnershipResultsPageContent() {
   const router = useRouter()
@@ -101,11 +102,11 @@ function PartnershipResultsPageContent() {
       router.push('/results')
       return <div>Redirecting...</div>
     }
-    return <div>Loading...</div>
+    return <LoadingSpinner message="Loading..." />
   }
 
   if (!results && (partnershipIdFromUrl || selectedPartnerId)) {
-    return <div>Loading results...</div>
+    return <LoadingSpinner message="Loading results..." />
   }
 
   return (

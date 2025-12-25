@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import QuestionDisplay from '@/components/quizzes/QuestionDisplay'
 import { AnswerType } from '@prisma/client'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 interface Partnership {
   id: string
@@ -391,73 +392,71 @@ function ResultsPageContent() {
     }
   }
 
-  if (loading) {
-    return <div>Loading...</div>
-  }
-
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem' }}>
       <h1 style={{ fontSize: '2rem', marginBottom: '2rem' }}>Results</h1>
 
-      {/* Filter by Partnership or Class */}
-      <div style={{ marginBottom: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <div>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
-            Filter by Partnership:
-          </label>
-          <select
-            value={selectedPartnershipId || ''}
-            onChange={(e) => {
-              setSelectedPartnershipId(e.target.value || null)
-              setSelectedClassId(null) // Clear class selection when partnership is selected
-            }}
-            style={{
-              padding: '0.75rem',
-              fontSize: '1rem',
-              border: '1px solid #ddd',
-              borderRadius: '4px',
-              minWidth: '300px',
-            }}
-          >
-            <option value="">All Partnerships</option>
-            {partnerships.map((partnership) => (
-              <option key={partnership.id} value={partnership.id}>
-                {partnership.members.map((m) => m.user.username).join(' - ')}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
-            Filter by Class:
-          </label>
-          <select
-            value={selectedClassId || ''}
-            onChange={(e) => {
-              setSelectedClassId(e.target.value || null)
-              setSelectedPartnershipId(null) // Clear partnership selection when class is selected
-            }}
-            style={{
-              padding: '0.75rem',
-              fontSize: '1rem',
-              border: '1px solid #ddd',
-              borderRadius: '4px',
-              minWidth: '300px',
-            }}
-          >
-            <option value="">All Classes</option>
-            {classes.map((cls) => (
-              <option key={cls.id} value={cls.id}>
-                {cls.name} (Teacher: {cls.teacher.username})
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+      {loading || loadingResults ? (
+        <LoadingSpinner message={loading ? "Loading..." : "Loading results..."} />
+      ) : (
+        <>
+          {/* Filter by Partnership or Class */}
+          <div style={{ marginBottom: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+                Filter by Partnership:
+              </label>
+              <select
+                value={selectedPartnershipId || ''}
+                onChange={(e) => {
+                  setSelectedPartnershipId(e.target.value || null)
+                  setSelectedClassId(null) // Clear class selection when partnership is selected
+                }}
+                style={{
+                  padding: '0.75rem',
+                  fontSize: '1rem',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  minWidth: '300px',
+                }}
+              >
+                <option value="">All Partnerships</option>
+                {partnerships.map((partnership) => (
+                  <option key={partnership.id} value={partnership.id}>
+                    {partnership.members.map((m) => m.user.username).join(' - ')}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+                Filter by Class:
+              </label>
+              <select
+                value={selectedClassId || ''}
+                onChange={(e) => {
+                  setSelectedClassId(e.target.value || null)
+                  setSelectedPartnershipId(null) // Clear partnership selection when class is selected
+                }}
+                style={{
+                  padding: '0.75rem',
+                  fontSize: '1rem',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  minWidth: '300px',
+                }}
+              >
+                <option value="">All Classes</option>
+                {classes.map((cls) => (
+                  <option key={cls.id} value={cls.id}>
+                    {cls.name} (Teacher: {cls.teacher.username})
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
 
-      {loadingResults ? (
-        <div>Loading results...</div>
-      ) : getFilteredResults().length === 0 ? (
+          {getFilteredResults().length === 0 ? (
         <div style={{ padding: '2rem', textAlign: 'center', color: '#666' }}>
           <p>No completed quizzes found.</p>
           {partnerships.length === 0 && (
@@ -552,7 +551,7 @@ function ResultsPageContent() {
                 {isExpanded && (
                   <div style={{ padding: '1.5rem', borderTop: '1px solid #ddd', backgroundColor: '#fff' }}>
                     {isLoadingDetail ? (
-                      <div>Loading question details...</div>
+                      <LoadingSpinner message="Loading question details..." />
                     ) : detail ? (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
                         {detail.questions.map((question, qIdx) => (
@@ -688,6 +687,8 @@ function ResultsPageContent() {
             )
           })}
         </div>
+          )}
+        </>
       )}
     </div>
   )
@@ -695,7 +696,7 @@ function ResultsPageContent() {
 
 export default function ResultsPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<LoadingSpinner />}>
       <ResultsPageContent />
     </Suspense>
   )

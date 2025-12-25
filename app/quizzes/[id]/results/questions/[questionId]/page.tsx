@@ -3,6 +3,7 @@
 import { useParams } from 'next/navigation'
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 export default function QuestionDetailPage() {
   const params = useParams()
@@ -35,7 +36,7 @@ export default function QuestionDetailPage() {
   }, [fetchData])
 
   if (loading) {
-    return <div>Loading...</div>
+    return <LoadingSpinner message="Loading..." />
   }
 
   if (error || !data) {

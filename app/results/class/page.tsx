@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { AnswerType } from '@prisma/client'
 import QuestionDisplay from '@/components/quizzes/QuestionDisplay'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 export default function ClassResultsPage() {
   const [classes, setClasses] = useState<any[]>([])
@@ -97,7 +98,7 @@ export default function ClassResultsPage() {
 
 
   if (loading && !selectedClassId) {
-    return <div>Loading classes...</div>
+    return <LoadingSpinner message="Loading classes..." />
   }
 
   if (!selectedClassId) {
@@ -137,7 +138,7 @@ export default function ClassResultsPage() {
   }
 
   if (!results) {
-    return <div>Loading results...</div>
+    return <LoadingSpinner message="Loading results..." />
   }
 
   return (
