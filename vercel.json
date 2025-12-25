@@ -1,8 +1,0 @@
-{
-  "functions": {
-    "api/**": {
-      "regions": ["fra1"]
-    }
-  }
-}
-
