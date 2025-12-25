@@ -282,8 +282,8 @@ export default function QuestionDisplay({
   }
 
   return (
-    <div style={{ marginBottom: '2rem', width: '100%', maxWidth: '100%' }}>
-      <div style={{ marginBottom: '1rem', textAlign: 'center' }}>
+    <div style={{ marginBottom: '2rem', width: '100%', maxWidth: '100%' }} suppressHydrationWarning>
+      <div style={{ marginBottom: '1rem', textAlign: 'center' }} suppressHydrationWarning>
         <span style={{ fontSize: '0.9rem', color: '#666' }} suppressHydrationWarning>
           Question {questionOrder + 1} of {totalQuestions}
         </span>
@@ -393,60 +393,66 @@ export default function QuestionDisplay({
           </div>
         ) : (
           /* Desktop Bridge Table Layout with Stacked Cards */
-          <div style={{
-          position: 'relative',
-          width: '400px',
-          height: '400px',
-          margin: '0 auto',
-          border: '3px solid #333',
-          borderRadius: '8px',
-          backgroundColor: '#f9f9f9',
-        }}>
+          <div 
+            style={{
+              position: 'relative',
+              width: '400px',
+              height: '400px',
+              margin: '0 auto',
+              border: '3px solid #333',
+              borderRadius: '8px',
+              backgroundColor: '#f9f9f9',
+            }}
+            suppressHydrationWarning
+          >
           {/* Center Compass */}
-          <div style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: '90px',
-            height: '90px',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: '#fff',
-            border: '2px solid #333',
-            borderRadius: '50%',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-          }}>
+          <div 
+            style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: '90px',
+              height: '90px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: '#fff',
+              border: '2px solid #333',
+              borderRadius: '50%',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+            }}
+            suppressHydrationWarning
+          >
             {/* Compass directions */}
             <div style={{
               position: 'absolute',
               top: '6px',
               fontWeight: 'bold',
               fontSize: '1.1rem',
-              color: '#1e40af',
+              color: isVulnerable('N') ? '#dc2626' : '#22c55e',
             }}>N</div>
             <div style={{
               position: 'absolute',
               right: '6px',
               fontWeight: 'bold',
               fontSize: '1.1rem',
-              color: '#1e40af',
+              color: isVulnerable('E') ? '#dc2626' : '#22c55e',
             }}>E</div>
             <div style={{
               position: 'absolute',
               bottom: '6px',
               fontWeight: 'bold',
               fontSize: '1.1rem',
-              color: '#1e40af',
+              color: isVulnerable('S') ? '#dc2626' : '#22c55e',
             }}>S</div>
             <div style={{
               position: 'absolute',
               left: '6px',
               fontWeight: 'bold',
               fontSize: '1.1rem',
-              color: '#1e40af',
+              color: isVulnerable('W') ? '#dc2626' : '#22c55e',
             }}>W</div>
             {/* Center dot */}
             <div style={{
@@ -580,6 +586,7 @@ export default function QuestionDisplay({
                           setHoveredBidId(hoveredBidId === bidId ? null : bidId)
                         }
                       }}
+                      suppressHydrationWarning
                     >
                       <div
                         style={{
@@ -589,6 +596,7 @@ export default function QuestionDisplay({
                             ? '0 4px 8px rgba(245, 127, 23, 0.4), 0 2px 4px rgba(0,0,0,0.2)'
                             : cardStyle.boxShadow,
                         }}
+                        suppressHydrationWarning
                       >
                         {bid.bidType === BidType.CONTRACT && bid.suit && (
                           <>

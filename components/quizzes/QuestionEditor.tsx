@@ -1038,28 +1038,28 @@ export default function QuestionEditor() {
                   top: '6px',
                   fontWeight: 'bold',
                   fontSize: '1.1rem',
-                  color: '#1e40af',
+                  color: isVulnerable('N') ? '#dc2626' : '#22c55e',
                 }}>N</div>
                 <div style={{
                   position: 'absolute',
                   right: '6px',
                   fontWeight: 'bold',
                   fontSize: '1.1rem',
-                  color: '#1e40af',
+                  color: isVulnerable('E') ? '#dc2626' : '#22c55e',
                 }}>E</div>
                 <div style={{
                   position: 'absolute',
                   bottom: '6px',
                   fontWeight: 'bold',
                   fontSize: '1.1rem',
-                  color: '#1e40af',
+                  color: isVulnerable('S') ? '#dc2626' : '#22c55e',
                 }}>S</div>
                 <div style={{
                   position: 'absolute',
                   left: '6px',
                   fontWeight: 'bold',
                   fontSize: '1.1rem',
-                  color: '#1e40af',
+                  color: isVulnerable('W') ? '#dc2626' : '#22c55e',
                 }}>W</div>
                 {/* Center dot */}
                 <div style={{
