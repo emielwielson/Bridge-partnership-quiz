@@ -52,6 +52,7 @@ export default function QuizPlayer({ attemptId }: QuizPlayerProps) {
   const [pendingAnswers, setPendingAnswers] = useState<Map<string, any>>(new Map())
   const [partnershipId, setPartnershipId] = useState<string | null>(null)
   const [partnerId, setPartnerId] = useState<string | null>(null)
+  const [initialIndexSet, setInitialIndexSet] = useState(false)
 
   const fetchAttempt = useCallback(async () => {
     try {
@@ -97,6 +98,29 @@ export default function QuizPlayer({ attemptId }: QuizPlayerProps) {
   useEffect(() => {
     fetchAttempt()
   }, [fetchAttempt])
+
+  // Set initial question index to first unanswered question (only once on load)
+  useEffect(() => {
+    if (questions.length > 0 && !initialIndexSet && !loading) {
+      // Find the first unanswered question
+      let firstUnansweredIndex = -1
+      for (let i = 0; i < questions.length; i++) {
+        if (!answers.has(questions[i].id)) {
+          firstUnansweredIndex = i
+          break
+        }
+      }
+      
+      // If there's an unanswered question, go to it; otherwise start at 0
+      if (firstUnansweredIndex >= 0) {
+        setCurrentQuestionIndex(firstUnansweredIndex)
+      } else {
+        // All questions answered, start at first question
+        setCurrentQuestionIndex(0)
+      }
+      setInitialIndexSet(true)
+    }
+  }, [questions, answers, initialIndexSet, loading])
 
   const currentQuestion = questions[currentQuestionIndex]
   const currentAnswer = answers.get(currentQuestion?.id)
@@ -196,25 +220,6 @@ export default function QuizPlayer({ attemptId }: QuizPlayerProps) {
         // If there's an error checking status, default to active quizzes
         router.push('/quizzes/active')
       }
-    }
-  }
-
-  const handleSkip = async () => {
-    // Save current answer if there's a pending one before skipping
-    if (currentQuestion && pendingAnswer) {
-      setSaving(true)
-      try {
-        await saveAnswer(currentQuestion.id, pendingAnswer)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to save answer')
-        setSaving(false)
-        return
-      }
-      setSaving(false)
-    }
-
-    if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1)
     }
   }
 
@@ -357,37 +362,20 @@ export default function QuizPlayer({ attemptId }: QuizPlayerProps) {
           Previous
         </button>
 
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          <button
-            onClick={handleSkip}
-            disabled={currentQuestionIndex === questions.length - 1 || saving}
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#ffc107',
-              color: '#333',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: currentQuestionIndex === questions.length - 1 || saving ? 'not-allowed' : 'pointer',
-            }}
-          >
-            Skip
-          </button>
-
-          <button
-            onClick={handleNext}
-            disabled={saving}
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#28a745',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: saving ? 'not-allowed' : 'pointer',
-            }}
-          >
-            {saving ? 'Saving...' : currentQuestionIndex === questions.length - 1 ? 'Finish' : 'Next'}
-          </button>
-        </div>
+        <button
+          onClick={handleNext}
+          disabled={saving}
+          style={{
+            padding: '0.75rem 1.5rem',
+            backgroundColor: '#28a745',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: saving ? 'not-allowed' : 'pointer',
+          }}
+        >
+          {saving ? 'Saving...' : currentQuestionIndex === questions.length - 1 ? 'Finish' : 'Next'}
+        </button>
       </div>
     </div>
   )
